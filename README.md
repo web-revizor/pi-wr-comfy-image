@@ -14,7 +14,7 @@ in ComfyUI that produces images becomes an image model of the `comfyui` provider
 Requirements: pi ≥ 1.0.1, Node 24, a running ComfyUI (≥ 0.38).
 
 ```bash
-pi install git:github.com/web-revizor/pi-wr-comfy-image
+pi install git:github.com/web-revizor/pi-wr-comfy-image@v0.1.0
 ```
 
 In ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and save it. Then in pi:

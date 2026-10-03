@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Check the version is not released yet
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "TAG=v$VERSION" >> "$GITHUB_ENV"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "v$VERSION already exists, nothing to release."
+            echo "SKIP=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Install and verify
+        if: env.SKIP != 'true'
+        run: |
+          yarn install --frozen-lockfile
+          yarn verify
+
+      # pi installs the package from the tag (pi install git:…@vX.Y.Z) and
+      # builds it itself, so the release carries no assets.
+      - name: Create the release
+        if: env.SKIP != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes

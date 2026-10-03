@@ -35,3 +35,9 @@ npx tsx scripts/run.ts <id> "<prompt>" '<json>'   # one real generation, images 
 ```
 
 Run `reference.mjs` again after updating ComfyUI or its frontend, then `parity.ts`.
+
+## Releasing
+
+Bump `version` in `package.json` and push to `main`. `.github/workflows/release.yml` runs `yarn verify` and creates the
+GitHub release `v<version>` when that tag does not exist yet; pi installs from the tag. `ci.yml` checks pull requests and
+other branches.
