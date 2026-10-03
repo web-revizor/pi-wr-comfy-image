@@ -1,0 +1,6 @@
+/node_modules
+/dist
+/test-results
+/.tsbuild
+package-lock.json
+/docs/superpowers/

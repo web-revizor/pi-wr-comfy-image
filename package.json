@@ -1,0 +1,62 @@
+{
+  "name": "pi-wr-comfy-image",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ComfyUI as a native pi image-model provider: every ComfyUI App Mode workflow that produces images becomes a pi image model for models.generateImages()",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/web-revizor/pi-wr-comfy-image.git"
+  },
+  "type": "module",
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=24"
+  },
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "comfyui",
+    "image-generation"
+  ],
+  "pi": {
+    "extensions": [
+      "./dist"
+    ]
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --platform=node --format=esm --target=node24 --external:@earendil-works/* --external:typebox --outfile=dist/pi-wr-comfy-image.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "tsx --test \"src/**/*.test.ts\"",
+    "verify": "yarn typecheck && yarn lint && yarn format:check && yarn test",
+    "prepare": "yarn build"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^1.0.1",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "playwright-core": "^1.63.0",
+    "prettier": "^3.9.9",
+    "tsx": "^4.23.15",
+    "typebox": "^1.3.34",
+    "typescript": "^5.9",
+    "typescript-eslint": "^8.71.0",
+    "zod": "^4"
+  }
+}
