@@ -43,14 +43,11 @@ Param names come from your node titles, in their language — see [Parameters](d
 
 ## Documentation
 
-| Document                                                       | Contents                                                 |
-| -------------------------------------------------------------- | -------------------------------------------------------- |
-| [Configuration](docs/configuration.md)                         | server URL, excluded workflows, timeout, prompt input    |
-| [Parameters](docs/parameters.md)                               | the tool's arguments, param names, values, seeds         |
-| [Troubleshooting](docs/troubleshooting.md)                     | common errors                                            |
-| [Development](docs/development.md)                             | setup, scripts, parity test against the ComfyUI frontend |
-| [Test results](docs/testing.md)                                | measured runs                                            |
-| [Design](docs/specs/2026-10-03-comfy-image-provider-design.md) | the original design (v0.1, codemode image models)        |
+| Document                                   | Contents                                              |
+| ------------------------------------------ | ----------------------------------------------------- |
+| [Configuration](docs/configuration.md)     | server URL, excluded workflows, timeout, prompt input |
+| [Parameters](docs/parameters.md)           | the tool's arguments, param names, values, seeds      |
+| [Troubleshooting](docs/troubleshooting.md) | common errors                                         |
 
 ## License
 

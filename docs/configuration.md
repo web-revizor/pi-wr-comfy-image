@@ -1,7 +1,7 @@
 # Configuration
 
 `~/.pi/agent/wr-comfy-image.json` — optional; every field has a default. A broken file is reported at pi startup and
-the provider is not registered.
+the tools are not registered.
 
 ```json
 {
@@ -17,7 +17,7 @@ the provider is not registered.
 | `url`         | `http://127.0.0.1:8188` | ComfyUI server; a remote one works the same                                                                |
 | `exclude`     | `[]`                    | globs on the path under `workflows/`: `*` within a folder, `**` across folders                             |
 | `timeoutMs`   | `600000`                | how long one generation may take; after that the plugin stops waiting                                      |
-| `promptInput` | `{}`                    | per model id: the input the prompt text goes to, when the first multi-line text input is not the right one |
+| `promptInput` | `{}`                    | per workflow: the input the prompt text goes to, when the first multi-line text input is not the right one |
 
 ## Which workflows are offered
 

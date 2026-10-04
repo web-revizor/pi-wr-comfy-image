@@ -1,5 +1,5 @@
 // Runs one workflow through the same code path as the pi extension. Local only.
-// Usage: tsx scripts/run.ts <model id> '<prompt>' ['<json params>']
+// Usage: tsx scripts/run.ts <workflow> '<prompt>' ['<json params>']
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { buildCatalog } from '../src/catalog.js';

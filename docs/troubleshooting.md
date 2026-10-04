@@ -1,6 +1,6 @@
 # Troubleshooting
 
-**`ComfyUI at http://127.0.0.1:8188 is not responding - start it`.** Start ComfyUI; the plugin does not. The models stay
+**`ComfyUI at http://127.0.0.1:8188 is not responding - start it`.** Start ComfyUI; the plugin does not. The workflows stay
 listed from the cache meanwhile.
 
 **A workflow is missing.** Only App Mode workflows with an image output count: open the workflow, switch to App Mode,

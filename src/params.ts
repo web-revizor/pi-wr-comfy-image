@@ -5,7 +5,7 @@ import {
   widgetOf,
 } from './appInputs.js';
 
-/** What `generateImages` receives: text blocks and base64 image blocks. */
+/** The tool call as content blocks: text blocks and base64 image blocks. */
 export type InputBlock =
   | { type: 'text'; text: string }
   | { type: 'image'; data: string; mimeType: string };
@@ -104,7 +104,7 @@ function checkValue(input: AppInput, value: unknown): unknown {
 }
 
 /**
- * Turns a `generateImages` input into values for the workflow: plain text goes
+ * Turns the tool input blocks into values for the workflow: plain text goes
  * to the prompt input, images to the image inputs in App Mode order, and a text
  * block that is a JSON object sets inputs by short name or key. Nothing is accepted
  * that the workflow does not expose.

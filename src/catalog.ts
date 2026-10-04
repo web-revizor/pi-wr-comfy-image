@@ -10,9 +10,9 @@ import {
 } from './comfy/types.js';
 import { type Config, globMatch } from './config.js';
 
-/** One App Mode workflow offered to pi as an image model. */
+/** One App Mode image workflow offered by the tools. */
 export interface CatalogEntry {
-  /** Model id: the path under `workflows/` without `.app.json`. */
+  /** Workflow name: the path under `workflows/` without `.app.json`. */
   id: string;
   file: string;
   modified: number;
