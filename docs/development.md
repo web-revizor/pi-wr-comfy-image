@@ -12,16 +12,17 @@ pi -e ./dist/pi-wr-comfy-image.js   # try it without installing
 
 ## Layout
 
-| File                         | Role                                                                    |
-| ---------------------------- | ----------------------------------------------------------------------- |
-| `src/extension.ts`           | pi entry: provider `comfyui` (image models) and `comfy_workflow_inputs` |
-| `src/catalog.ts`             | finds App Mode image workflows, cache                                   |
-| `src/convert/toApiPrompt.ts` | UI → API conversion                                                     |
-| `src/appInputs.ts`           | App Mode inputs: keys, aliases, labels, types, choices                  |
-| `src/params.ts`              | `generateImages` input → values, images, seeds                          |
-| `src/runner.ts`              | upload, queue, wait, download, cancel                                   |
-| `src/comfy/`                 | HTTP client, `/object_info` reading, types                              |
-| `src/config.ts`              | config file and globs                                                   |
+| File                         | Role                                                         |
+| ---------------------------- | ------------------------------------------------------------ |
+| `src/extension.ts`           | pi entry: tools `comfy_workflow_inputs` and `comfy_generate` |
+| `src/catalog.ts`             | finds App Mode image workflows, cache                        |
+| `src/convert/toApiPrompt.ts` | UI → API conversion                                          |
+| `src/appInputs.ts`           | App Mode inputs: keys, aliases, labels, types, choices       |
+| `src/params.ts`              | tool input → values, images, seeds                           |
+| `src/names.ts`               | short param names from node titles                           |
+| `src/runner.ts`              | upload, queue, wait, download, cancel                        |
+| `src/comfy/`                 | HTTP client, `/object_info` reading, types                   |
+| `src/config.ts`              | config file and globs                                        |
 
 ## Local checks against a real ComfyUI
 

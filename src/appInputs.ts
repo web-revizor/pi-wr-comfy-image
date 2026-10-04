@@ -1,13 +1,14 @@
 import { widgetSpecs, type WidgetKind } from './comfy/objectInfo.js';
 import { type ObjectInfo, type UiWorkflow } from './comfy/types.js';
 import { savedNode } from './convert/toApiPrompt.js';
+import { shortNames } from './names.js';
 
 /** One input App Mode exposes, described for the agent and for validation. */
 export interface AppInput {
   /** `<nodePath>.<widget>`, e.g. `118.value`. */
   key: string;
-  /** The widget name when no other input of the workflow shares it. */
-  alias?: string;
+  /** Short unique name for tool calls: `mode`, `seed`, `cfg`. */
+  name: string;
   /** The node title - users write these as instructions. */
   label: string;
   kind: WidgetKind | 'image';
@@ -32,6 +33,7 @@ export function appInputs(workflow: UiWorkflow, info: ObjectInfo): AppInput[] {
     const value = values.get(widget);
     const input: AppInput = {
       key: `${path}.${widget}`,
+      name: '',
       label: node.title ?? node.type,
       kind: spec?.upload ? 'image' : (spec?.kind ?? kindOf(value)),
       default: value,
@@ -47,15 +49,14 @@ export function appInputs(workflow: UiWorkflow, info: ObjectInfo): AppInput[] {
     if (control) input.control = control;
     inputs.push(input);
   }
-  const counts = new Map<string, number>();
-  for (const i of inputs) {
-    const name = widgetOf(i.key);
-    counts.set(name, (counts.get(name) ?? 0) + 1);
-  }
-  for (const i of inputs) {
-    const name = widgetOf(i.key);
-    if (counts.get(name) === 1) i.alias = name;
-  }
+  const names = shortNames(
+    inputs.map((i) => ({
+      key: i.key,
+      label: i.label,
+      widget: widgetOf(i.key),
+    })),
+  );
+  inputs.forEach((i, n) => (i.name = names[n] ?? i.key));
   return inputs;
 }
 
@@ -98,28 +99,61 @@ export function promptInput(
   });
 }
 
-/** One line per input, for the `comfy_workflow_inputs` tool. */
+/** A choice without its explanation: "t2i — з нуля" -> "t2i". */
+export function shortChoice(choice: string): string {
+  return (choice.split(/\s+[—–-]\s+|\s+\(/)[0] ?? choice).trim();
+}
+
+/** Short forms of the choices when they stay distinct, the choices otherwise. */
+export function displayChoices(choices: string[]): string[] {
+  const short = choices.map(shortChoice);
+  return new Set(short).size === short.length ? short : choices;
+}
+
+const MAX_LISTED_CHOICES = 12;
+
+/** A combo of model files: listing them only buries the useful inputs. */
+function isFileChoice(choices: string[]): boolean {
+  return choices.some((c) =>
+    /\.(safetensors|ckpt|pt|pth|gguf|bin|onnx)$/i.test(c),
+  );
+}
+
+/** Compact description of a workflow's inputs, for the `comfy_workflow_inputs` tool. */
 export function describeInputs(
   id: string,
   inputs: AppInput[],
   prompt: AppInput | undefined,
+  verbose = false,
 ): string {
-  const lines = [`${id}`];
-  let image = 0;
+  const lines = [id];
+  if (prompt) lines.push('  prompt: text');
+  const images = inputs.filter((i) => i.kind === 'image');
+  if (images.length) {
+    lines.push(
+      `  images: ${images.length} (${images.map((i) => i.name).join(', ')})`,
+    );
+  }
   for (const i of inputs) {
-    const role =
-      i === prompt
-        ? 'prompt ← '
-        : i.kind === 'image'
-          ? `image#${++image} ← `
-          : '';
-    const name = i.alias ? `${i.key} (${i.alias})` : i.key;
-    const detail = i.choices
-      ? `one of: ${i.choices.map((c) => JSON.stringify(c)).join(', ')}`
-      : i.kind === 'image'
-        ? 'image'
-        : `${i.kind}${range(i)} = ${JSON.stringify(i.default)}${i.control ? `, ${i.control}` : ''}`;
-    lines.push(`  ${role}${name} — ${i.label} — ${detail}`);
+    if (i === prompt || i.kind === 'image') continue;
+    let type: string;
+    if (i.choices && isFileChoice(i.choices) && !verbose) {
+      type = `file, ${i.choices.length} available`;
+    } else if (i.choices) {
+      const shown = displayChoices(i.choices);
+      type =
+        shown.length > MAX_LISTED_CHOICES && !verbose
+          ? `one of ${shown.length} choices`
+          : shown.map((c) => JSON.stringify(c)).join(' | ');
+    } else {
+      type = `${i.kind}${range(i)}`;
+    }
+    const current =
+      i.control === 'randomize'
+        ? 'random each run'
+        : `= ${JSON.stringify(i.choices ? shortChoice(String(i.default)) : i.default)}`;
+    const label = verbose ? `  # ${i.label} [${i.key}]` : '';
+    lines.push(`  ${i.name}: ${type} (${current})${label}`);
   }
   return lines.join('\n');
 }

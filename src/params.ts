@@ -1,4 +1,9 @@
-import { type AppInput } from './appInputs.js';
+import {
+  type AppInput,
+  displayChoices,
+  shortChoice,
+  widgetOf,
+} from './appInputs.js';
 
 /** What `generateImages` receives: text blocks and base64 image blocks. */
 export type InputBlock =
@@ -39,29 +44,44 @@ function parseJsonBlock(text: string): Record<string, unknown> | undefined {
 }
 
 function allowedKeys(inputs: AppInput[]): string {
-  return inputs
-    .map((i) => (i.alias ? `${i.key} (${i.alias})` : i.key))
-    .join(', ');
+  return inputs.map((i) => i.name).join(', ');
+}
+
+/** The full choice for an exact value, its short form, or a unique prefix. */
+function matchChoice(choices: string[], value: string): string | undefined {
+  const v = value.trim().toLowerCase();
+  const exact = choices.find(
+    (c) => c.toLowerCase() === v || shortChoice(c).toLowerCase() === v,
+  );
+  if (exact !== undefined) return exact;
+  const prefixed = choices.filter((c) => c.toLowerCase().startsWith(v));
+  return prefixed.length === 1 ? prefixed[0] : undefined;
 }
 
 function checkValue(input: AppInput, value: unknown): unknown {
-  const fail = (what: string): never => {
-    throw new ParamsError(`${input.key} (${input.label}): ${what}`);
+  const fail: (what: string) => never = (what) => {
+    throw new ParamsError(`${input.name}: ${what}`);
   };
   if (input.choices) {
-    if (!input.choices.includes(String(value))) {
+    const choice = matchChoice(input.choices, String(value));
+    if (choice === undefined) {
       fail(
-        `must be one of ${input.choices.map((c) => JSON.stringify(c)).join(', ')}`,
+        `must be one of ${displayChoices(input.choices)
+          .map((c) => JSON.stringify(c))
+          .join(', ')}`,
       );
     }
-    return String(value);
+    return choice;
   }
   switch (input.kind) {
     case 'int':
     case 'float': {
-      if (typeof value !== 'number' || Number.isNaN(value))
-        fail('must be a number');
-      const n = value as number;
+      // Smaller models often quote numbers: "1024" is meant as 1024.
+      const n =
+        typeof value === 'string' && value.trim() !== ''
+          ? Number(value)
+          : value;
+      if (typeof n !== 'number' || Number.isNaN(n)) fail('must be a number');
       if (input.kind === 'int' && !Number.isInteger(n))
         fail('must be an integer');
       if (input.min !== undefined && n < input.min)
@@ -70,21 +90,23 @@ function checkValue(input: AppInput, value: unknown): unknown {
         fail(`must be ≤ ${input.max}`);
       return n;
     }
-    case 'boolean':
-      if (typeof value !== 'boolean') fail('must be true or false');
-      return value;
+    case 'boolean': {
+      const b = value === 'true' ? true : value === 'false' ? false : value;
+      if (typeof b !== 'boolean') fail('must be true or false');
+      return b;
+    }
     case 'string':
       if (typeof value !== 'string') fail('must be a string');
       return value;
     default:
-      return fail('cannot be set from JSON - pass an image block instead');
+      return fail('is an image input - pass it in `images`');
   }
 }
 
 /**
  * Turns a `generateImages` input into values for the workflow: plain text goes
  * to the prompt input, images to the image inputs in App Mode order, and a text
- * block that is a JSON object sets inputs by key or alias. Nothing is accepted
+ * block that is a JSON object sets inputs by short name or key. Nothing is accepted
  * that the workflow does not expose.
  */
 export function resolveParams(
@@ -97,9 +119,15 @@ export function resolveParams(
   const images: ImageUpload[] = [];
   const texts: string[] = [];
   const byName = new Map<string, AppInput>();
+  const widgetCount = new Map<string, number>();
+  for (const i of inputs) {
+    const w = widgetOf(i.key);
+    widgetCount.set(w, (widgetCount.get(w) ?? 0) + 1);
+  }
   for (const i of inputs) {
     byName.set(i.key, i);
-    if (i.alias) byName.set(i.alias, i);
+    byName.set(i.name, i);
+    if (widgetCount.get(widgetOf(i.key)) === 1) byName.set(widgetOf(i.key), i);
   }
 
   const imageInputs = inputs.filter((i) => i.kind === 'image');

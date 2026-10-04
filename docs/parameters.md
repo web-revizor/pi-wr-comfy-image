@@ -1,25 +1,33 @@
 # Parameters
 
-`models.generateImages(model, { input })` only carries text and image blocks, so the plugin reads them like this:
+`comfy_generate` takes four arguments:
 
-| Block                                    | Goes to                                                                                               |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| plain text                               | the prompt input — the first multi-line text input App Mode exposes, or `promptInput` from the config |
-| image (`{type:"image", data, mimeType}`) | the image inputs (`LoadImage`) in App Mode order; uploaded to ComfyUI's `input/`                      |
-| text that is a JSON object               | inputs by key or alias                                                                                |
+| Argument   | Goes to                                                                                               |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| `workflow` | the workflow name (path under ComfyUI's `workflows/` without `.app.json`)                             |
+| `prompt`   | the prompt input — the first multi-line text input App Mode exposes, or `promptInput` from the config |
+| `images`   | input image files (paths, relative to the project) for the `LoadImage` inputs, in App Mode order      |
+| `params`   | any other input App Mode exposes, by name                                                             |
 
-## Keys
+## Param names
 
-- **Key** `<nodeId>.<widget>`, e.g. `118.value`, `10.cfg`; inside a subgraph `104:99.scale_by`. Always accepted.
-- **Alias** the widget name when no other exposed input shares it: `cfg`, `aspect`, `unet_name`.
+Each exposed input gets a short name:
 
-```json
-{ "105.choice": "t2i — з нуля за промптом", "seed": 42, "aspect": "16:9" }
-```
+- the widget name when it is specific and unique in the workflow: `cfg`, `aspect`, `unet_name`, `denoise`;
+- otherwise the node title, cut at its first `:`, `(`, `,`, `—` or `;`, in lowercase snake_case and in whatever language
+  the title is written: "🎲 SEED: fixed = …" → `seed`, "📐 Довга сторона результату (px)" → `довга_сторона_результату`;
+- when two titles give the same name, more of the title is used, then the node id (`same_7`, `same_8`).
 
-Values are checked before anything is queued: unknown keys, wrong types, numbers outside min/max and values outside a
-list of choices are refused with the allowed keys or choices. Inputs you do not set keep the value saved in the
-workflow.
+The names are as good as your node titles: short, distinct titles make short, distinct params. The full key
+`<nodeId>.<widget>` (`118.value`, `104:99.scale_by` inside a subgraph) is always accepted as well.
+
+## Values
+
+- Choices match the full value, its short form or a unique prefix: `"t2i"` finds "t2i — з нуля за промптом".
+- Numbers and booleans may be quoted (`"1024"`, `"false"`).
+- Unknown names, wrong types, numbers outside min/max and values outside the choices are refused with the allowed
+  names or choices, before anything is queued.
+- Inputs you do not set keep the value saved in the workflow.
 
 ## Seeds
 
@@ -28,23 +36,28 @@ used is in the reply, so a result can be reproduced by passing it back.
 
 ## Reply
 
-Image blocks with the generated images, then a text block:
+The images (models that see images get them), plus:
 
 ```
-saved: output/flux2-i2i_00004_.png · seed: 118.value=361387510757214 · 22.4 s, prompt 5f0ed2c8-…
+Saved 1 image(s):
+- F:\my-project\.pi\images\qwen21_i2i_t2i-20261004-031340.png
+seed: 311515242217939
+16.2 s
 ```
 
-## Discovering inputs
+## Discovering params
 
-`comfy_workflow_inputs` (optional `workflow` argument):
+`comfy_workflow_inputs` (optional `workflow`, `verbose`):
 
 ```
-flux2_klein9b_i2i_t2i
-  105.choice — Режим: i2i / t2i — one of: "i2i — перемалювати вхідне фото", "t2i — з нуля за промптом"
-  image#1 ← 1.image (image) — 1. ВХІДНЕ ФОТО (input/) — image
-  prompt ← 44.string (string) — Ручний промпт (коли switch = false) — string = "…"
-  118.value — 🎲 SEED: … — int = 663169675039627, randomize
-  110.aspect (aspect) — 📐 РОЗМІР генерації … — one of: "3:4", "2:3", …, "from image"
+qwen21_i2i_t2i
+  prompt: text
+  images: 1 (вхідне_фото)
+  режим: "i2i" | "t2i" | "edit" (= "i2i")
+  unet_name: file, 8 available (= "qwen_image_2.1_int8_convrot.safetensors")
+  seed: int (random each run)
+  aspect: "3:4" | "2:3" | "9:16" | "4:5" | "1:1" | "4:3" | "3:2" | "16:9" | "from image" (= "from image")
+  довга_сторона_результату: int (= 2040)
 ```
 
-Node titles are the labels, so writing instructions into titles ("0 = off", "only for i2i") helps the agent.
+`verbose: true` adds the node titles, the full keys and every choice.

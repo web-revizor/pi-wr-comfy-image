@@ -19,14 +19,16 @@ the provider is not registered.
 | `timeoutMs`   | `600000`                | how long one generation may take; after that the plugin stops waiting                                      |
 | `promptInput` | `{}`                    | per model id: the input the prompt text goes to, when the first multi-line text input is not the right one |
 
-## Which workflows become models
+## Which workflows are offered
 
 Every `*.app.json` under ComfyUI's `user/default/workflows/` (read over its API) that is saved in App Mode and has an
 image output (`SaveImage`, `PreviewImage`, `SaveImageAdvanced`, any output node taking images), minus `exclude`. Video
-and audio workflows are skipped. The model id is the path without `.app.json`.
+and audio workflows are skipped. The workflow name is the path without `.app.json`.
 
-The list is cached in `~/.pi/agent/cache/wr-comfy-image.json`, so the models are listed when ComfyUI is down; they are
-re-read when pi starts with ComfyUI up, on a model refresh, and by `comfy_workflow_inputs`. A workflow is read fresh on
+Generated images are saved in the session's project under `.pi/images/`.
+
+The list is cached in `~/.pi/agent/cache/wr-comfy-image.json`, so the workflows are listed when ComfyUI is down; they
+are re-read when pi starts with ComfyUI up and by `comfy_workflow_inputs`. A workflow is read fresh on
 every generation, so edits in ComfyUI apply immediately.
 
 The plugin never starts or stops ComfyUI.

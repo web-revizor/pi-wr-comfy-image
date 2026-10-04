@@ -15,11 +15,11 @@ wf.extra?.linearData?.inputs?.push(['40', 'image']);
 const inputs = appInputs(wf, info);
 const prompt = promptInput(inputs, wf, info);
 
-test('App Mode inputs carry key, alias, label, type and choices', () => {
+test('App Mode inputs carry key, short name, label, type and choices', () => {
   const seed = inputs.find((i) => i.key === '4.seed');
   assert.deepEqual(
     {
-      alias: seed?.alias,
+      alias: seed?.name,
       label: seed?.label,
       kind: seed?.kind,
       control: seed?.control,
@@ -34,10 +34,32 @@ test('App Mode inputs carry key, alias, label, type and choices', () => {
   assert.equal(prompt?.key, '2.text');
 });
 
-test('the tool lists the prompt and image inputs by role', () => {
+test('the listing is one short line per param', () => {
   const text = describeInputs('t2i', inputs, prompt);
-  assert.match(text, /prompt ← 2\.text/);
-  assert.match(text, /image#1 ← 40\.image/);
+  assert.match(text, /^ {2}prompt: text$/m);
+  assert.match(text, /^ {2}images: 1 \(photo\)$/m);
+  assert.match(text, /^ {2}seed: int .*\(random each run\)$/m);
+  assert.match(
+    text,
+    /^ {2}sampler_name: "euler" \| "dpmpp_2m" \(= "euler"\)$/m,
+  );
+  assert.doesNotMatch(text, /2\.text/);
+});
+
+test('choices match by full value, short form or unique prefix, numbers may be quoted', () => {
+  const r = resolveParams(
+    [
+      {
+        type: 'text',
+        text: '{"sampler_name": "dpm", "cfg": "4.5", "seed": "7"}',
+      },
+    ],
+    inputs,
+    prompt,
+  );
+  assert.equal(r.values.get('4.sampler_name'), 'dpmpp_2m');
+  assert.equal(r.values.get('4.cfg'), 4.5);
+  assert.equal(r.values.get('4.seed'), 7);
 });
 
 test('plain text goes to the prompt, a JSON block sets inputs by key or alias', () => {

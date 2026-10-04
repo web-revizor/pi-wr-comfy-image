@@ -4,3 +4,4 @@
 /.tsbuild
 package-lock.json
 /docs/superpowers/
+/.idea
