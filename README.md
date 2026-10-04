@@ -1,5 +1,12 @@
 # pi-wr-comfy-image
 
+[![npm](https://img.shields.io/npm/v/pi-wr-comfy-image?logo=npm)](https://www.npmjs.com/package/pi-wr-comfy-image)
+[![pi package](https://img.shields.io/badge/pi-package-orange)](https://pi.dev/packages/pi-wr-comfy-image)
+[![release](https://img.shields.io/github/actions/workflow/status/web-revizor/pi-wr-comfy-image/release.yml?branch=main&label=release)](https://github.com/web-revizor/pi-wr-comfy-image/actions/workflows/release.yml)
+[![license](https://img.shields.io/npm/l/pi-wr-comfy-image)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![built on Pi](https://img.shields.io/badge/built%20on-Pi-orange)](https://pi.dev)
+
 Generate images in [pi](https://github.com/earendil-works/pi) with your own ComfyUI workflows. Every **App Mode** workflow
 you save in ComfyUI that produces images can be run by the agent with one plain tool call — prompt, input images and any
 input App Mode exposes, no annotations needed. Simple enough for small models.
