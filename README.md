@@ -14,9 +14,9 @@ input App Mode exposes, no annotations needed. Simple enough for small models.
 Requirements: pi ≥ 1.0.1, Node 24, a running ComfyUI (≥ 0.38).
 
 ```bash
-pi install npm:pi-wr-comfy-image@0.2.2
+pi install npm:pi-wr-comfy-image@0.2.3
 # or from git:
-pi install git:github.com/web-revizor/pi-wr-comfy-image@v0.2.2
+pi install git:github.com/web-revizor/pi-wr-comfy-image@v0.2.3
 ```
 
 In ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and save it. Then ask the agent, e.g.

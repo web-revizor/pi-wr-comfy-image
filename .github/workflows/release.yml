@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -46,8 +47,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
 
-      # Skipped until the NPM_TOKEN secret exists. Add --provenance once the
-      # repository is public: npm rejects provenance from private repositories.
+      # Skipped when the NPM_TOKEN secret is not set.
       - name: Publish to npm
         if: env.SKIP != 'true' && env.NODE_AUTH_TOKEN != ''
-        run: npm publish
+        run: npm publish --provenance
