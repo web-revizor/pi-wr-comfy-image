@@ -5,61 +5,113 @@ on:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: write
-  id-token: write
+permissions: {}
 
+# Each job gets only the permissions it needs: dependency install and build
+# scripts never see the OIDC token or a write token.
 jobs:
-  release:
+  # The GitHub release and the npm publish are checked separately, so a run
+  # that failed to publish can be retried for the same version.
+  check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.state.outputs.tag }}
+      tagged: ${{ steps.state.outputs.tagged }}
+      published: ${{ steps.state.outputs.published }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - uses: actions/setup-node@v7
+      - name: Check what is already released
+        id: state
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          TAGGED=false
+          PUBLISHED=false
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "GitHub release v$VERSION exists."
+            TAGGED=true
+          fi
+          if npm view "pi-wr-comfy-image@$VERSION" version >/dev/null 2>&1; then
+            echo "pi-wr-comfy-image@$VERSION is on npm."
+            PUBLISHED=true
+          elif [ "$TAGGED" = true ] && ! git diff --quiet "v$VERSION" HEAD -- . ':!.github'; then
+            echo "::error::v$VERSION is tagged but the package sources changed since; bump the version."
+            exit 1
+          fi
+          {
+            echo "tag=v$VERSION"
+            echo "tagged=$TAGGED"
+            echo "published=$PUBLISHED"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: check
+    if: needs.check.outputs.tagged != 'true' || needs.check.outputs.published != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Install, verify, pack
+        run: |
+          yarn install --frozen-lockfile
+          yarn verify
+          npm pack
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: package
+          path: pi-wr-comfy-image-*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  # pi builds git installs itself, so the release carries no assets.
+  release:
+    needs: [check, build]
+    if: needs.check.outputs.tagged != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.check.outputs.tag }}
+        run: gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+
+  # npm trusted publishing (OIDC): no token; npm adds provenance. The tarball
+  # comes from the build job and is published without running its scripts.
+  publish:
+    needs: [check, build]
+    if: needs.check.outputs.published != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '24'
           package-manager-cache: false
           registry-url: 'https://registry.npmjs.org'
 
-      # The GitHub release and the npm publish are checked separately, so a run
-      # that failed to publish can be retried for the same version.
-      - name: Check what is already released
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "TAG=v$VERSION" >> "$GITHUB_ENV"
-          TAGGED=false
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "GitHub release v$VERSION exists."
-            TAGGED=true
-          fi
-          echo "TAGGED=$TAGGED" >> "$GITHUB_ENV"
-          if npm view "pi-wr-comfy-image@$VERSION" version >/dev/null 2>&1; then
-            echo "pi-wr-comfy-image@$VERSION is on npm."
-            echo "PUBLISHED=true" >> "$GITHUB_ENV"
-          elif [ "$TAGGED" = true ] && ! git diff --quiet "v$VERSION" HEAD -- . ':!.github'; then
-            echo "::error::v$VERSION is tagged but the package sources changed since; bump the version."
-            exit 1
-          fi
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: package
 
-      - name: Install and verify
-        if: env.TAGGED != 'true' || env.PUBLISHED != 'true'
-        run: |
-          yarn install --frozen-lockfile
-          yarn verify
-
-      # pi builds git installs itself, so the release carries no assets.
-      - name: Create the release
-        if: env.TAGGED != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
-
-      # npm trusted publishing (OIDC, id-token: write): no token, provenance is
-      # added by npm. Needs npm >= 11.5.1.
       - name: Publish to npm
-        if: env.PUBLISHED != 'true'
         run: |
           npm install -g npm@^11.5.1
-          npm publish
+          npm publish ./pi-wr-comfy-image-*.tgz --ignore-scripts
