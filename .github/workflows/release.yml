@@ -12,8 +12,6 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -25,29 +23,43 @@ jobs:
           package-manager-cache: false
           registry-url: 'https://registry.npmjs.org'
 
-      - name: Check the version is not released yet
+      # The GitHub release and the npm publish are checked separately, so a run
+      # that failed to publish can be retried for the same version.
+      - name: Check what is already released
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "TAG=v$VERSION" >> "$GITHUB_ENV"
+          TAGGED=false
           if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "v$VERSION already exists, nothing to release."
-            echo "SKIP=true" >> "$GITHUB_ENV"
+            echo "GitHub release v$VERSION exists."
+            TAGGED=true
+          fi
+          echo "TAGGED=$TAGGED" >> "$GITHUB_ENV"
+          if npm view "pi-wr-comfy-image@$VERSION" version >/dev/null 2>&1; then
+            echo "pi-wr-comfy-image@$VERSION is on npm."
+            echo "PUBLISHED=true" >> "$GITHUB_ENV"
+          elif [ "$TAGGED" = true ] && ! git diff --quiet "v$VERSION" HEAD -- . ':!.github'; then
+            echo "::error::v$VERSION is tagged but the package sources changed since; bump the version."
+            exit 1
           fi
 
       - name: Install and verify
-        if: env.SKIP != 'true'
+        if: env.TAGGED != 'true' || env.PUBLISHED != 'true'
         run: |
           yarn install --frozen-lockfile
           yarn verify
 
       # pi builds git installs itself, so the release carries no assets.
       - name: Create the release
-        if: env.SKIP != 'true'
+        if: env.TAGGED != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
 
-      # Skipped when the NPM_TOKEN secret is not set.
+      # npm trusted publishing (OIDC, id-token: write): no token, provenance is
+      # added by npm. Needs npm >= 11.5.1.
       - name: Publish to npm
-        if: env.SKIP != 'true' && env.NODE_AUTH_TOKEN != ''
-        run: npm publish --provenance
+        if: env.PUBLISHED != 'true'
+        run: |
+          npm install -g npm@^11.5.1
+          npm publish
