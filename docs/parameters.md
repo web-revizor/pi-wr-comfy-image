@@ -36,13 +36,14 @@ used is in the reply, so a result can be reproduced by passing it back.
 
 ## Reply
 
-The images (models that see images get them), plus:
+Text only — the images themselves are not attached, so they cost no tokens; the agent reads a file when it needs to look:
 
 ```
 Saved 1 image(s):
 - F:\my-project\.pi\images\qwen21_i2i_t2i-20261004-031340.png
 seed: 311515242217939
 16.2 s
+Read a file to look at it.
 ```
 
 ## Discovering params

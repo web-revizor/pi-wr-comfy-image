@@ -1,6 +1,6 @@
 {
   "name": "pi-wr-comfy-image",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Generate images in pi with your ComfyUI App Mode workflows: two plain tools, comfy_workflow_inputs and comfy_generate",
   "license": "Apache-2.0",

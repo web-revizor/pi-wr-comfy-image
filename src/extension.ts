@@ -140,7 +140,7 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
     name: 'comfy_generate',
     label: 'ComfyUI generate',
     description:
-      'Generates images with a ComfyUI workflow and saves them in the project under .pi/images/. ' +
+      'Generates images with a ComfyUI workflow, saves them in the project under .pi/images/ and returns their paths. ' +
       'Example: {"workflow":"<name>","prompt":"a red fox in snow, watercolor","params":{"seed":42}}. ' +
       'Param names are exactly as comfy_workflow_inputs lists them (they can be in any language); unset params keep the workflow defaults. ' +
       'For image-to-image pass input files in "images". ' +
@@ -233,18 +233,14 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
         ...saved.map((f) => `- ${f}`),
         seeds.length ? `seed: ${seeds.join(', ')}` : '',
         `${result.seconds} s`,
+        'Read a file to look at it.',
       ]
         .filter(Boolean)
         .join('\n');
+      // Paths only: an image in the result costs tokens on every later turn,
+      // and the model can read the file when it needs to look.
       return {
-        content: [
-          { type: 'text', text: summary },
-          ...result.images.map((i) => ({
-            type: 'image' as const,
-            data: i.data,
-            mimeType: i.mimeType,
-          })),
-        ],
+        content: [{ type: 'text', text: summary }],
         details: { files: saved, seeds: result.seeds, seconds: result.seconds },
       };
     },

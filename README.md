@@ -7,7 +7,7 @@ input App Mode exposes, no annotations needed. Simple enough for small models.
 - Works with any workflow: the plugin converts ComfyUI's UI format itself (subgraphs, Set/Get nodes, reroutes, bypassed
   and muted nodes), checked node by node against ComfyUI's own frontend.
 - Inputs come from App Mode: what you exposed in the UI is what the agent can set, named after your node titles.
-- Images are saved into the current project under `.pi/images/` and shown to the agent.
+- Images are saved into the current project under `.pi/images/`; the agent gets their paths (no image tokens) and reads a file only when it needs to look.
 
 ## Quick start
 
