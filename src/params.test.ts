@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { appInputs, describeInputs, promptInput } from './appInputs.js';
+import {
+  appInputs,
+  describeInputs,
+  promptInput,
+  summaryLine,
+} from './appInputs.js';
 import { ParamsError, resolveParams } from './params.js';
 import { info, txt2img } from './testing/fixtures.js';
 
@@ -128,4 +133,12 @@ test('unknown keys, wrong types and values outside the choices are refused', () 
   bad('{"sampler_name": "lms"}');
   bad('{"seed": 1.5}');
   bad('{"cfg": 1000}');
+});
+
+test('one line per workflow names what it takes, for the tool description', () => {
+  assert.equal(
+    summaryLine('t2i', inputs, prompt),
+    't2i: prompt, 1 image; params: seed, cfg, sampler_name',
+  );
+  assert.equal(summaryLine('bare', [], undefined), 'bare: no inputs');
 });

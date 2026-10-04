@@ -7,7 +7,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ExtensionAPI } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
-import { describeInputs } from './appInputs.js';
+import { describeInputs, summaryLine } from './appInputs.js';
 import {
   buildCatalog,
   type Catalog,
@@ -88,6 +88,16 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
   }
 
   const ids = (): string => entries.map((e) => e.id).join(', ') || 'none yet';
+  const summaries = (): string =>
+    entries
+      .map((e) =>
+        summaryLine(
+          e.id,
+          e.inputs,
+          e.inputs.find((i) => i.key === e.prompt),
+        ),
+      )
+      .join('\n') || 'none yet';
 
   pi.registerTool({
     name: 'comfy_workflow_inputs',
@@ -142,9 +152,10 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
     description:
       'Generates images with a ComfyUI workflow, saves them in the project under .pi/images/ and returns their paths. ' +
       'Example: {"workflow":"<name>","prompt":"a red fox in snow, watercolor","params":{"seed":42}}. ' +
-      'Param names are exactly as comfy_workflow_inputs lists them (they can be in any language); unset params keep the workflow defaults. ' +
-      'For image-to-image pass input files in "images". ' +
-      `Workflows: ${ids()}.`,
+      'Param names are exactly as listed below (they can be in any language); unset params keep the workflow defaults; ' +
+      'a wrong value is answered with the allowed ones. For image-to-image pass input files in "images". ' +
+      'comfy_workflow_inputs shows choices, ranges and defaults.\n' +
+      `Workflows:\n${summaries()}`,
     parameters: Type.Object({
       workflow: Type.String({ description: 'Workflow name' }),
       prompt: Type.Optional(Type.String({ description: 'What to generate' })),

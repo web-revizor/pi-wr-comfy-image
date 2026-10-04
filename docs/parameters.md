@@ -46,6 +46,17 @@ seed: 311515242217939
 Read a file to look at it.
 ```
 
+## What the agent knows without asking
+
+The `comfy_generate` description carries one line per workflow, so a plain request needs a single call:
+
+```
+qwen21_i2i_t2i: prompt, 1 image; params: режим, unet_name, …, seed, aspect, довга_сторона_результату, якість, …
+```
+
+The description is built when pi starts; a workflow saved in ComfyUI later shows up in `comfy_workflow_inputs` right
+away and in the description after a pi restart.
+
 ## Discovering params
 
 `comfy_workflow_inputs` (optional `workflow`, `verbose`):

@@ -99,6 +99,24 @@ export function promptInput(
   });
 }
 
+/** One line per workflow for the tool description: what it takes, param names only. */
+export function summaryLine(
+  id: string,
+  inputs: AppInput[],
+  prompt: AppInput | undefined,
+): string {
+  const parts: string[] = [];
+  if (prompt) parts.push('prompt');
+  const images = inputs.filter((i) => i.kind === 'image').length;
+  if (images) parts.push(`${images} image${images > 1 ? 's' : ''}`);
+  const params = inputs
+    .filter((i) => i !== prompt && i.kind !== 'image')
+    .map((i) => i.name);
+  const head = parts.join(', ');
+  const tail = params.length ? `params: ${params.join(', ')}` : '';
+  return `${id}: ${[head, tail].filter(Boolean).join('; ') || 'no inputs'}`;
+}
+
 /** A choice without its explanation: "t2i — з нуля" -> "t2i". */
 export function shortChoice(choice: string): string {
   return (choice.split(/\s+[—–-]\s+|\s+\(/)[0] ?? choice).trim();
