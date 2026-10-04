@@ -40,5 +40,10 @@ Run `reference.mjs` again after updating ComfyUI or its frontend, then `parity.t
 ## Releasing
 
 Bump `version` in `package.json` and push to `main`. `.github/workflows/release.yml` runs `yarn verify` and creates the
-GitHub release `v<version>` when that tag does not exist yet; pi installs from the tag. `ci.yml` checks pull requests and
-other branches.
+GitHub release `v<version>` when that tag does not exist yet, then publishes the version to npm (`npm publish`, which builds
+`dist` through `prepare`). pi installs either from npm or from the tag. `ci.yml` checks pull requests and other branches.
+
+The npm step runs only when the repository secret `NPM_TOKEN` is set (an npmjs.com granular token with read and write
+access); without it the release is created and publishing is skipped. The `pi-package` keyword lists the package in the
+[pi package gallery](https://pi.dev/packages). Check the tarball contents before the first publish with
+`npm pack --dry-run`.

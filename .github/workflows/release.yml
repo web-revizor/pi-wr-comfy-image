@@ -11,6 +11,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -20,6 +22,7 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Check the version is not released yet
         run: |
@@ -36,10 +39,15 @@ jobs:
           yarn install --frozen-lockfile
           yarn verify
 
-      # pi installs the package from the tag (pi install git:…@vX.Y.Z) and
-      # builds it itself, so the release carries no assets.
+      # pi builds git installs itself, so the release carries no assets.
       - name: Create the release
         if: env.SKIP != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$TAG" --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+
+      # Skipped until the NPM_TOKEN secret exists. Add --provenance once the
+      # repository is public: npm rejects provenance from private repositories.
+      - name: Publish to npm
+        if: env.SKIP != 'true' && env.NODE_AUTH_TOKEN != ''
+        run: npm publish
