@@ -39,9 +39,9 @@ In ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and s
   "workflow": "qwen21_i2i_t2i",
   "prompt": "a lighthouse on a cliff at sunset, oil painting",
   "params": {
-    "режим": "t2i",
+    "mode": "t2i",
     "aspect": "16:9",
-    "довга_сторона_результату": 1024
+    "output_long_side": 1024
   }
 }
 ```
