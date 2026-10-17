@@ -1,5 +1,5 @@
 {
-  "id": "b8da3188-4ae5-40b8-9a9a-114f9335962a",
+  "id": "da4d7bce-aa4d-4a01-9e79-1add46d2fc16",
   "revision": 0,
   "last_node_id": 28,
   "last_link_id": 18,
@@ -192,7 +192,7 @@
           {
             "name": "flux2-vae.safetensors",
             "directory": "vae",
-            "url": "https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors"
+            "url": "https://huggingface.co/Comfy-Org/flux2-klein/resolve/main/split_files/vae/flux2-vae.safetensors"
           }
         ]
       },

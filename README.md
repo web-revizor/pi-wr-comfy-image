@@ -85,5 +85,7 @@ peak memory of the whole card. Qwen-Image ran with the `qwen3vl_8b_w4a8` text en
 
 ## License
 
-[Apache License 2.0](LICENSE); keep the [NOTICE](NOTICE) file when redistributing. ComfyUI and pi are separate projects
-of their respective owners.
+[Apache License 2.0](LICENSE); keep the [NOTICE](NOTICE) file when redistributing. The package bundles
+[zod](THIRD_PARTY_NOTICES.md) (MIT). ComfyUI, pi, FLUX.2 and Qwen-Image are separate projects of their respective owners;
+the models have their own licenses — Qwen-Image 2.1 is for non-commercial use only (see
+[Model licenses](docs/workflows.md#model-licenses)).

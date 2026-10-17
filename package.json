@@ -1,6 +1,6 @@
 {
   "name": "pi-wr-comfy-image",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Generate images in pi with your ComfyUI App Mode workflows: two plain tools, comfy_workflow_inputs and comfy_generate",
   "license": "Apache-2.0",
   "repository": {
@@ -35,7 +35,8 @@
     "workflows",
     "README.md",
     "LICENSE",
-    "NOTICE"
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "scripts": {
     "build": "esbuild src/extension.ts --bundle --platform=node --format=esm --target=node24 --external:@earendil-works/* --external:typebox --outfile=dist/pi-wr-comfy-image.js",

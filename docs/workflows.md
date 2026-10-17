@@ -30,7 +30,17 @@ The command lists the files ComfyUI does not have; ComfyUI also offers to downlo
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
 | FLUX.2 klein 4B | [flux-2-klein-4b.safetensors](https://huggingface.co/Comfy-Org/flux2-klein/resolve/main/split_files/diffusion_models/flux-2-klein-4b.safetensors)                | `models/diffusion_models/` |
 | FLUX.2 klein 4B | [qwen_3_4b.safetensors](https://huggingface.co/Comfy-Org/flux2-klein/resolve/main/split_files/text_encoders/qwen_3_4b.safetensors)                               | `models/text_encoders/`    |
-| FLUX.2 klein 4B | [flux2-vae.safetensors](https://huggingface.co/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors)                                           | `models/vae/`              |
+| FLUX.2 klein 4B | [flux2-vae.safetensors](https://huggingface.co/Comfy-Org/flux2-klein/resolve/main/split_files/vae/flux2-vae.safetensors)                                         | `models/vae/`              |
 | Qwen-Image 2.1  | [qwen_image_2.1_int8_convrot.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/diffusion_models/qwen_image_2.1_int8_convrot.safetensors) | `models/diffusion_models/` |
 | Qwen-Image 2.1  | [qwen3vl_8b_int8_convrot.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/text_encoders/qwen3vl_8b_int8_convrot.safetensors)            | `models/text_encoders/`    |
 | Qwen-Image 2.1  | [qwen_image_2.1_vae_bf16.safetensors](https://huggingface.co/Comfy-Org/Qwen-Image-2.1/resolve/main/vae/qwen_image_2.1_vae_bf16.safetensors)                      | `models/vae/`              |
+
+## Model licenses
+
+The plugin and its workflows do not include any model; the files are downloaded from their publishers and come with
+their own licenses. Check them before using the results commercially:
+
+| Family          | License                                                                                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| FLUX.2 klein 4B | [Apache 2.0](https://huggingface.co/black-forest-labs/FLUX.2-klein-4B) — commercial use allowed                                                                |
+| Qwen-Image 2.1  | [Qwen Research License](https://huggingface.co/Qwen/Qwen-Image-2.1/blob/main/LICENSE) — research and evaluation only; commercial use needs a license from Qwen |

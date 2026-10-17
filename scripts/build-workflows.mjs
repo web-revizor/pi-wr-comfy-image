@@ -41,7 +41,7 @@ const KLEIN4B = {
   vae: {
     name: 'flux2-vae.safetensors',
     directory: 'vae',
-    url: `${HF}/Comfy-Org/flux2-dev/resolve/main/split_files/vae/flux2-vae.safetensors`,
+    url: `${HF}/Comfy-Org/flux2-klein/resolve/main/split_files/vae/flux2-vae.safetensors`,
   },
 };
 
