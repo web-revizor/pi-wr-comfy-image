@@ -24,8 +24,8 @@ Requirements: pi ≥ 1.0.1, Node 24, a running ComfyUI (≥ 0.38).
 pi install npm:pi-wr-comfy-image
 ```
 
-The latest release is installed; `pi update npm:pi-wr-comfy-image` brings it up to date. To pin a release, add its version:
-`npm:pi-wr-comfy-image@<version>` or, from git, `git:github.com/web-revizor/pi-wr-comfy-image@v<version>`.
+The latest release is installed; `pi update npm:pi-wr-comfy-image` brings it up to date. To pin a release, add its
+version: `npm:pi-wr-comfy-image@<version>`.
 
 Run `/comfy-install-workflows` in pi to get the [ready-made workflows](#ready-made-workflows), or save your own: in
 ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and save it. Then ask the agent, e.g.

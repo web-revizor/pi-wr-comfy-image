@@ -6,8 +6,12 @@
 | ---------- | ----------------------------------------------------------------------------------------------------- |
 | `workflow` | the workflow name (path under ComfyUI's `workflows/` without `.app.json`)                             |
 | `prompt`   | the prompt input — the first multi-line text input App Mode exposes, or `promptInput` from the config |
-| `images`   | input image files (paths, relative to the project) for the `LoadImage` inputs, in App Mode order      |
+| `images`   | input image files for the `LoadImage` inputs, in App Mode order (see below)                           |
 | `params`   | any other input App Mode exposes, by name                                                             |
+
+`images` takes paths relative to the project or absolute; png, jpg, webp or gif. More images than the workflow has
+image inputs are refused; an image input you do not fill keeps the file saved in the workflow (`example.png` in the
+bundled edit workflows).
 
 ## Param names
 
@@ -15,24 +19,27 @@ Each exposed input gets a short name:
 
 - the widget name when it is specific and unique in the workflow: `steps`, `aspect_ratio`, `megapixels`, `unet_name`;
 - otherwise the node title, cut at its first `:`, `(`, `,`, `—` or `;`, in lowercase snake_case: "Seed" → `seed`, "📐 Output long side (px)" → `output_long_side`;
-- when two titles give the same name, more of the title is used, then the node id (`same_7`, `same_8`).
+- when two titles give the same name, more of the title is used, then the node id (`same_7`, `same_8`); a name that
+  would be `prompt`, `images`, `workflow` or `params` is treated the same way.
 
 The names are as good as your node titles: short, distinct titles make short, distinct params. English titles work
 best: small models type ASCII names more reliably. The full key
-`<nodeId>.<widget>` (`28.value`, `104:99.scale_by` inside a subgraph) is always accepted as well.
+`<nodeId>.<widget>` (`28.value`, `104:99.scale_by` inside a subgraph) is always accepted as well, and so is the bare
+widget name when only one exposed input has it.
 
 ## Values
 
-- Choices match the full value, its short form or a unique prefix: `"16:9"` finds "16:9 (Widescreen)".
+- Choices match the full value, its short form or a unique prefix, ignoring case: `"16:9"` finds "16:9 (Widescreen)".
 - Numbers and booleans may be quoted (`"1024"`, `"false"`).
 - Unknown names, wrong types, numbers outside min/max and values outside the choices are refused with the allowed
-  names or choices, before anything is queued.
+  names, choices or bound (`steps: must be ≤ 10000`), before anything is queued.
 - Inputs you do not set keep the value saved in the workflow.
 
 ## Seeds
 
-An input saved with the `randomize` control gets a new value on every run, as in ComfyUI, unless you set it. The seed
-used is in the reply, so a result can be reproduced by passing it back.
+An integer input saved with the `randomize` control gets a new value on every run unless you set it (`increment` and
+`decrement` are not applied: the saved value is used). Inputs whose title or key contains "seed" are reported in the
+reply with the value used, so a result can be reproduced by passing it back.
 
 ## Reply
 
@@ -73,4 +80,5 @@ pi-wr-comfy-image/qwen21_t2i
   clip_name: file, 3 available (= "qwen3vl_8b_int8_convrot.safetensors")
 ```
 
-`verbose: true` adds the node titles, the full keys and every choice.
+`file, N available` is the number of files in that ComfyUI model folder. `verbose: true` adds the node titles, the
+full keys and every choice.

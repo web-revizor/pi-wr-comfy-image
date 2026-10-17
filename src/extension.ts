@@ -102,7 +102,7 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
       .join('\n') || 'none yet';
 
   pi.registerCommand('comfy-install-workflows', {
-    description: `Copy the bundled minimal workflows (FLUX.2 klein, Qwen-Image 2.1) into ComfyUI workflows/${INSTALL_DIR}/`,
+    description: `Copy the bundled minimal workflows (FLUX.2 klein, Qwen-Image 2.1) into ComfyUI workflows/${INSTALL_DIR}/ (never overwrites) and list missing model files`,
     handler: async (_args, ctx) => {
       try {
         const info = catalog?.info ?? (await client.objectInfo());
@@ -134,7 +134,7 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
     name: 'comfy_workflow_inputs',
     label: 'ComfyUI workflows',
     description:
-      'Lists the ComfyUI image workflows and the params each one accepts (name: type or choices (= default)). ' +
+      'Lists the ComfyUI image workflows and the params each one accepts (name: type or choices (= default, or random each run)). ' +
       'Call it before comfy_generate to see the param names. ' +
       `Workflows: ${ids()}.`,
     parameters: Type.Object({
@@ -142,7 +142,9 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
         Type.String({ description: 'Workflow name; omit to list all' }),
       ),
       verbose: Type.Optional(
-        Type.Boolean({ description: 'Also show node titles and every choice' }),
+        Type.Boolean({
+          description: 'Also show node titles, full keys and every choice',
+        }),
       ),
     }),
     async execute(
@@ -189,11 +191,15 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
       `Workflows:\n${summaries()}`,
     parameters: Type.Object({
       workflow: Type.String({ description: 'Workflow name' }),
-      prompt: Type.Optional(Type.String({ description: 'What to generate' })),
+      prompt: Type.Optional(
+        Type.String({
+          description: 'What to generate, or the edit instruction',
+        }),
+      ),
       images: Type.Optional(
         Type.Array(Type.String(), {
           description:
-            'Input image files (paths), in the order the workflow takes them',
+            'Input image files (paths relative to the project; png, jpg, webp or gif), in the order the workflow takes them',
         }),
       ),
       params: Type.Optional(

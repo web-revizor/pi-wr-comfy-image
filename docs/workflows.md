@@ -16,9 +16,11 @@ All four use core ComfyUI nodes only (ComfyUI ≥ 0.38). Images are saved by Com
 | `qwen21_edit`      | prompt, 1 image | `seed`, `steps` (25), `resolution`, `unet_name`, `clip_name`                 |
 
 For the edit workflows the prompt is an instruction ("make it a snowy winter night"). The output keeps the aspect of
-the input image; its size is set by `megapixels` (FLUX.2, default 1 MP) or `resolution` (Qwen-Image, about
-`resolution` × `resolution` pixels, default 1024). `unet_name` and `clip_name` pick another model file of the same
-family, e.g. a different quantization.
+the input image; its size is set by `megapixels` (FLUX.2, default 1 MP, sides in multiples of 16) or `resolution`
+(Qwen-Image, about `resolution` × `resolution` pixels in multiples of 32, default 1024; `0` keeps the input size).
+
+`unet_name` and `clip_name` accept any file in `models/diffusion_models/` and `models/text_encoders/`; pick one of the
+same family (e.g. another quantization), since the text encoder type of each workflow is fixed.
 
 ## Model files
 
