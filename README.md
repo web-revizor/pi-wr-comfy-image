@@ -21,10 +21,11 @@ input App Mode exposes, no annotations needed. Simple enough for small models.
 Requirements: pi ≥ 1.0.1, Node 24, a running ComfyUI (≥ 0.38).
 
 ```bash
-pi install npm:pi-wr-comfy-image@0.2.4
-# or from git:
-pi install git:github.com/web-revizor/pi-wr-comfy-image@v0.2.4
+pi install npm:pi-wr-comfy-image
 ```
+
+The latest release is installed; `pi update npm:pi-wr-comfy-image` brings it up to date. To pin a release, add its version:
+`npm:pi-wr-comfy-image@<version>` or, from git, `git:github.com/web-revizor/pi-wr-comfy-image@v<version>`.
 
 In ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and save it. Then ask the agent, e.g.
 "generate a lighthouse at sunset with comfyui qwen21_i2i_t2i in t2i mode, 16:9". It uses two tools:
@@ -39,14 +40,39 @@ In ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and s
   "workflow": "qwen21_i2i_t2i",
   "prompt": "a lighthouse on a cliff at sunset, oil painting",
   "params": {
-    "режим": "t2i",
+    "mode": "t2i",
     "aspect": "16:9",
-    "довга_сторона_результату": 1024
+    "output_long_side": 1024
   }
 }
 ```
 
-Param names come from your node titles, in their language — see [Parameters](docs/parameters.md).
+Param names come from your node titles — see [Parameters](docs/parameters.md).
+
+## Ready-made workflows
+
+No App Mode workflows yet? Run `/comfy-install-workflows` in pi: it copies four minimal workflows (core nodes only)
+into ComfyUI's `workflows/pi-wr-comfy-image/` and never overwrites a file that is already there.
+
+| Workflow                             | What it does                   |
+| ------------------------------------ | ------------------------------ |
+| `pi-wr-comfy-image/flux2_klein_t2i`  | FLUX.2 klein 4B, text to image |
+| `pi-wr-comfy-image/flux2_klein_edit` | FLUX.2 klein 4B, edit an image |
+| `pi-wr-comfy-image/qwen21_t2i`       | Qwen-Image 2.1, text to image  |
+| `pi-wr-comfy-image/qwen21_edit`      | Qwen-Image 2.1, edit an image  |
+
+The command lists the model files ComfyUI does not have yet, with download links — see [Workflows](docs/workflows.md).
+
+"a lighthouse on a cliff at sunset, oil painting":
+
+![FLUX.2 klein 4B and Qwen-Image 2.1, text to image](https://raw.githubusercontent.com/web-revizor/pi-wr-comfy-image/main/docs/images/t2i.jpg)
+
+"make it a snowy winter night":
+
+![Input image, FLUX.2 klein 4B edit and Qwen-Image 2.1 edit](https://raw.githubusercontent.com/web-revizor/pi-wr-comfy-image/main/docs/images/edit.jpg)
+
+RTX 3060 12 GB, 1024×1024, default steps (FLUX.2 klein 4, Qwen-Image 25), time of a run with the models already loaded,
+peak memory of the whole card. Qwen-Image ran with the `qwen3vl_8b_w4a8` text encoder.
 
 ## Documentation
 
@@ -54,6 +80,7 @@ Param names come from your node titles, in their language — see [Parameters](d
 | ------------------------------------------ | ----------------------------------------------------- |
 | [Configuration](docs/configuration.md)     | server URL, excluded workflows, timeout, prompt input |
 | [Parameters](docs/parameters.md)           | the tool's arguments, param names, values, seeds      |
+| [Workflows](docs/workflows.md)             | the bundled workflows, their params and model files   |
 | [Troubleshooting](docs/troubleshooting.md) | common errors                                         |
 
 ## License

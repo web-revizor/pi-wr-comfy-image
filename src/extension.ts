@@ -1,7 +1,8 @@
 /**
  * pi extension: two plain tools over ComfyUI App Mode workflows that produce
  * images - `comfy_workflow_inputs` lists them with their parameters, and
- * `comfy_generate` runs one and saves the images into the current project.
+ * `comfy_generate` runs one and saves the images into the current project -
+ * and the `/comfy-install-workflows` command for the bundled workflows.
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -18,6 +19,7 @@ import {
 } from './catalog.js';
 import { ComfyClient } from './comfy/client.js';
 import { CACHE_FILE, type Config, CONFIG_FILE, loadConfig } from './config.js';
+import { INSTALL_DIR, installWorkflows } from './install.js';
 import { type InputBlock } from './params.js';
 import { runWorkflow } from './runner.js';
 
@@ -99,6 +101,35 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
       )
       .join('\n') || 'none yet';
 
+  pi.registerCommand('comfy-install-workflows', {
+    description: `Copy the bundled minimal workflows (FLUX.2 klein, Qwen-Image 2.1) into ComfyUI workflows/${INSTALL_DIR}/`,
+    handler: async (_args, ctx) => {
+      try {
+        const info = catalog?.info ?? (await client.objectInfo());
+        const result = await installWorkflows(client, info);
+        await refresh();
+        const lines = [
+          result.installed.length
+            ? `Installed: ${result.installed.join(', ')}`
+            : '',
+          result.kept.length
+            ? `Already there, left as they are: ${result.kept.join(', ')}`
+            : '',
+          ...result.missing.map(
+            (m) =>
+              `Missing model: ${m.name} -> ComfyUI/models/${m.directory}/ (${m.url})`,
+          ),
+        ];
+        ctx.ui.notify(
+          lines.filter(Boolean).join('\n'),
+          result.missing.length ? 'warning' : 'info',
+        );
+      } catch (err) {
+        ctx.ui.notify(message(err), 'error');
+      }
+    },
+  });
+
   pi.registerTool({
     name: 'comfy_workflow_inputs',
     label: 'ComfyUI workflows',
@@ -152,7 +183,7 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
     description:
       'Generates images with a ComfyUI workflow, saves them in the project under .pi/images/ and returns their paths. ' +
       'Example: {"workflow":"<name>","prompt":"a red fox in snow, watercolor","params":{"seed":42}}. ' +
-      'Param names are exactly as listed below (they can be in any language); unset params keep the workflow defaults; ' +
+      'Param names are exactly as listed below; unset params keep the workflow defaults; ' +
       'a wrong value is answered with the allowed ones. For image-to-image pass input files in "images". ' +
       'comfy_workflow_inputs shows choices, ranges and defaults.\n' +
       `Workflows:\n${summaries()}`,

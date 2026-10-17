@@ -1,8 +1,7 @@
 /**
  * Short parameter names from node titles, for models that do better with
  * `seed` and `long_side` than with `118.value` and `107.value`. A title is cut
- * at its first `:`, `(`, `,`, `—` or `;` and becomes lowercase snake_case in
- * whatever language it is written in - no dictionaries, no transliteration.
+ * at its first `:`, `(`, `,`, `—` or `;` and becomes lowercase snake_case.
  */
 
 /** Names the generate tool uses for its own arguments. */

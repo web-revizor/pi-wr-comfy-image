@@ -27,6 +27,8 @@ export interface UiNode {
   inputs?: UiInput[];
   outputs?: { name: string; type: string; links?: number[] | null }[];
   widgets_values?: unknown[] | Record<string, unknown>;
+  /** `models`: files the node loads, with download URLs. */
+  properties?: { models?: unknown[] } & Record<string, unknown>;
 }
 
 export interface UiSubgraph {

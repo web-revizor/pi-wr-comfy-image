@@ -71,6 +71,31 @@ export class ComfyClient {
     return (await res.json()) as UiWorkflow;
   }
 
+  /**
+   * Saves a workflow file under `user/default/workflows` (folders are created).
+   * Returns false, without writing, when the file exists and `overwrite` is off.
+   */
+  async saveWorkflow(
+    relPath: string,
+    body: string,
+    overwrite = false,
+  ): Promise<boolean> {
+    try {
+      await this.request(
+        `/api/userdata/${encodeURIComponent(`workflows/${relPath}`)}?overwrite=${overwrite}`,
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body,
+        },
+      );
+      return true;
+    } catch (err) {
+      if (err instanceof ComfyRequestError && err.status === 409) return false;
+      throw err;
+    }
+  }
+
   /** Uploads an input image; returns the name to put into `LoadImage.image`. */
   async uploadImage(
     data: Buffer,

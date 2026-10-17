@@ -14,16 +14,16 @@
 Each exposed input gets a short name:
 
 - the widget name when it is specific and unique in the workflow: `cfg`, `aspect`, `unet_name`, `denoise`;
-- otherwise the node title, cut at its first `:`, `(`, `,`, `—` or `;`, in lowercase snake_case and in whatever language
-  the title is written: "🎲 SEED: fixed = …" → `seed`, "📐 Довга сторона результату (px)" → `довга_сторона_результату`;
+- otherwise the node title, cut at its first `:`, `(`, `,`, `—` or `;`, in lowercase snake_case: "🎲 SEED: fixed = …" → `seed`, "📐 Output long side (px)" → `output_long_side`;
 - when two titles give the same name, more of the title is used, then the node id (`same_7`, `same_8`).
 
-The names are as good as your node titles: short, distinct titles make short, distinct params. The full key
+The names are as good as your node titles: short, distinct titles make short, distinct params. English titles work
+best: small models type ASCII names more reliably. The full key
 `<nodeId>.<widget>` (`118.value`, `104:99.scale_by` inside a subgraph) is always accepted as well.
 
 ## Values
 
-- Choices match the full value, its short form or a unique prefix: `"t2i"` finds "t2i — з нуля за промптом".
+- Choices match the full value, its short form or a unique prefix: `"t2i"` finds "t2i — from scratch by the prompt".
 - Numbers and booleans may be quoted (`"1024"`, `"false"`).
 - Unknown names, wrong types, numbers outside min/max and values outside the choices are refused with the allowed
   names or choices, before anything is queued.
@@ -51,7 +51,7 @@ Read a file to look at it.
 The `comfy_generate` description carries one line per workflow, so a plain request needs a single call:
 
 ```
-qwen21_i2i_t2i: prompt, 1 image; params: режим, unet_name, …, seed, aspect, довга_сторона_результату, якість, …
+qwen21_i2i_t2i: prompt, 1 image; params: mode, unet_name, …, seed, aspect, output_long_side, quality, …
 ```
 
 The description is built when pi starts; a workflow saved in ComfyUI later shows up in `comfy_workflow_inputs` right
@@ -64,12 +64,13 @@ away and in the description after a pi restart.
 ```
 qwen21_i2i_t2i
   prompt: text
-  images: 1 (вхідне_фото)
-  режим: "i2i" | "t2i" | "edit" (= "i2i")
-  unet_name: file, 8 available (= "qwen_image_2.1_int8_convrot.safetensors")
+  images: 1 (input_photo)
+  mode: "i2i" | "t2i" | "edit" (= "i2i")
+  unet_name: file, 6 available (= "qwen_image_2.1_int8_convrot.safetensors")
   seed: int (random each run)
   aspect: "3:4" | "2:3" | "9:16" | "4:5" | "1:1" | "4:3" | "3:2" | "16:9" | "from image" (= "from image")
-  довга_сторона_результату: int (= 2040)
+  output_long_side: int (= 2040)
+  quality: "Fast 8/8" | "Quality 25/25" | "Custom" (= "Fast 8/8")
 ```
 
 `verbose: true` adds the node titles, the full keys and every choice.

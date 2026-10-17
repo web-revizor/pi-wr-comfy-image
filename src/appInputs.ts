@@ -117,7 +117,7 @@ export function summaryLine(
   return `${id}: ${[head, tail].filter(Boolean).join('; ') || 'no inputs'}`;
 }
 
-/** A choice without its explanation: "t2i — з нуля" -> "t2i". */
+/** A choice without its explanation: "t2i — from scratch" -> "t2i". */
 export function shortChoice(choice: string): string {
   return (choice.split(/\s+[—–-]\s+|\s+\(/)[0] ?? choice).trim();
 }
