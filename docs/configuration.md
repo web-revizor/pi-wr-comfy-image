@@ -8,7 +8,7 @@ the tools are not registered.
   "url": "http://127.0.0.1:8188",
   "exclude": ["old/*", "*_laptop*"],
   "timeoutMs": 600000,
-  "promptInput": { "qwen21_i2i_t2i": "44.string" }
+  "promptInput": { "my_workflow": "12.text" }
 }
 ```
 

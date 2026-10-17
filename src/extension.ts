@@ -202,7 +202,7 @@ export default async function comfyImage(pi: ExtensionAPI): Promise<void> {
           Type.Union([Type.String(), Type.Number(), Type.Boolean()]),
           {
             description:
-              'Workflow params by name, e.g. {"seed": 42, "aspect": "16:9"}',
+              'Workflow params by name, e.g. {"seed": 42, "steps": 8}',
           },
         ),
       ),

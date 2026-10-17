@@ -27,8 +27,9 @@ pi install npm:pi-wr-comfy-image
 The latest release is installed; `pi update npm:pi-wr-comfy-image` brings it up to date. To pin a release, add its version:
 `npm:pi-wr-comfy-image@<version>` or, from git, `git:github.com/web-revizor/pi-wr-comfy-image@v<version>`.
 
-In ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and save it. Then ask the agent, e.g.
-"generate a lighthouse at sunset with comfyui qwen21_i2i_t2i in t2i mode, 16:9". It uses two tools:
+Run `/comfy-install-workflows` in pi to get the [ready-made workflows](#ready-made-workflows), or save your own: in
+ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and save it. Then ask the agent, e.g.
+"generate a lighthouse at sunset with comfyui qwen21_t2i, 16:9". It uses two tools:
 
 | Tool                    | What it does                                                           |
 | ----------------------- | ---------------------------------------------------------------------- |
@@ -37,12 +38,11 @@ In ComfyUI, open a workflow, switch to App Mode, pick the inputs to expose and s
 
 ```json
 {
-  "workflow": "qwen21_i2i_t2i",
+  "workflow": "pi-wr-comfy-image/qwen21_t2i",
   "prompt": "a lighthouse on a cliff at sunset, oil painting",
   "params": {
-    "mode": "t2i",
-    "aspect": "16:9",
-    "output_long_side": 1024
+    "aspect_ratio": "16:9",
+    "seed": 42
   }
 }
 ```
