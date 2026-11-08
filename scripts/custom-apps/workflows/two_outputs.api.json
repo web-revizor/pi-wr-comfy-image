@@ -1,0 +1,57 @@
+{
+  "1": {
+    "inputs": {
+      "image": "example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "2": {
+    "inputs": {
+      "image": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "ImageInvert",
+    "_meta": {
+      "title": "Invert Image Colors",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "3": {
+    "inputs": {
+      "filename_prefix": "pi-custom-test/two_outputs_a",
+      "images": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "4": {
+    "inputs": {
+      "filename_prefix": "pi-custom-test/two_outputs_b",
+      "images": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  }
+}

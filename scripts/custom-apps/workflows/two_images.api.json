@@ -1,0 +1,61 @@
+{
+  "1": {
+    "inputs": {
+      "image": "example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "2": {
+    "inputs": {
+      "image": "example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Second photo",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "3": {
+    "inputs": {
+      "direction": "right",
+      "match_image_size": true,
+      "spacing_width": 0,
+      "spacing_color": "white",
+      "image1": [
+        "1",
+        0
+      ],
+      "image2": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "ImageStitch",
+    "_meta": {
+      "title": "Stitch Images",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "4": {
+    "inputs": {
+      "filename_prefix": "pi-custom-test/two_images",
+      "images": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  }
+}

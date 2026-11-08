@@ -58,12 +58,11 @@ Read a file to look at it.
 The `comfy_generate` description carries one line per workflow, so a plain request needs a single call:
 
 ```
-pi-wr-comfy-image/qwen21_t2i: prompt; params: seed, steps, aspect_ratio, megapixels, unet_name, clip_name
-pi-wr-comfy-image/qwen21_edit: prompt, 1 image; params: seed, steps, resolution, unet_name, clip_name
+pi-wr-comfy-image/qwen21_t2i: prompt; params: seed, steps, aspect_ratio, megapixels
+pi-wr-comfy-image/qwen21_edit: prompt, 1 image; params: seed, steps, resolution
 ```
 
-The description is built when pi starts; a workflow saved in ComfyUI later shows up in `comfy_workflow_inputs` right
-away and in the description after a pi restart.
+A workflow saved in ComfyUI later shows up in `comfy_workflow_inputs` right away, and the description follows it.
 
 ## Discovering params
 
@@ -76,9 +75,8 @@ pi-wr-comfy-image/qwen21_t2i
   steps: int 1..10000 (= 25)
   aspect_ratio: "1:1" | "2:3" | "3:2" | "3:4" | "4:3" | "9:16" | "16:9" | "21:9" (= "1:1")
   megapixels: float 0.1..16 (= 1)
-  unet_name: file, 2 available (= "qwen_image_2.1_int8_convrot.safetensors")
-  clip_name: file, 3 available (= "qwen3vl_8b_int8_convrot.safetensors")
+  (2 model file params not shown: leave as saved, or call with verbose)
 ```
 
-`file, N available` is the number of files in that ComfyUI model folder. `verbose: true` adds the node titles, the
-full keys and every choice.
+Params that pick a model file are left out to keep the list short, and still work. `verbose: true` shows them and adds
+the node titles, the full keys and every choice.

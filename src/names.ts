@@ -52,15 +52,21 @@ const GENERIC = new Set([
 export function shortNames(
   inputs: { key: string; label: string; widget: string }[],
 ): string[] {
+  // A dynamic combo's field is `<combo>.<field>`: only the field says anything.
+  const leaf = (widget: string): string => widget.split('.').at(-1) ?? widget;
   const widgetCount = new Map<string, number>();
-  for (const i of inputs)
-    widgetCount.set(i.widget, (widgetCount.get(i.widget) ?? 0) + 1);
+  for (const i of inputs) {
+    const w = leaf(i.widget);
+    widgetCount.set(w, (widgetCount.get(w) ?? 0) + 1);
+  }
 
-  const first = inputs.map((i) =>
-    !GENERIC.has(i.widget) && widgetCount.get(i.widget) === 1
-      ? i.widget
-      : titleSlug(i.label) || i.widget,
-  );
+  const first = inputs.map((i) => {
+    const w = leaf(i.widget);
+    if (!GENERIC.has(w) && widgetCount.get(w) === 1) return w;
+    const slug = titleSlug(i.label);
+    if (slug && w !== i.widget && !GENERIC.has(w)) return `${slug}_${w}`;
+    return slug || i.widget;
+  });
   const names = first.map((name, n) => {
     const clash = first.filter((x) => x === name).length > 1;
     if (!clash && !RESERVED.has(name)) return name;

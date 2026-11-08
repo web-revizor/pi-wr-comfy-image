@@ -1,5 +1,5 @@
-import { randomUUID } from 'node:crypto';
-import { type CatalogEntry } from './catalog.js';
+import { createHash, randomUUID } from 'node:crypto';
+import { type CatalogEntry, missingFiles } from './catalog.js';
 import {
   type ComfyClient,
   ComfyRequestError,
@@ -34,6 +34,8 @@ export interface RunOptions {
   signal?: AbortSignal;
   random?: () => number;
   pollMs?: number;
+  /** Called on every poll with the seconds since the run started. */
+  onProgress?: (seconds: number) => void;
 }
 
 const MIME: Record<string, string> = {
@@ -91,11 +93,15 @@ function executionError(
 
 const sleep = (ms: number, signal?: AbortSignal): Promise<void> =>
   new Promise((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal?.addEventListener('abort', () => {
+    const onAbort = (): void => {
       clearTimeout(timer);
       resolve();
-    });
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 
 /** Runs one App Mode workflow with the given input and returns its images. */
@@ -111,10 +117,21 @@ export async function runWorkflow(
   const prompt = entry.inputs.find((i) => i.key === entry.prompt);
   const params = resolveParams(input, entry.inputs, prompt, opts.random);
 
-  for (const [n, image] of params.images.entries()) {
+  const missing = missingFiles(workflow, info, params.values);
+  if (missing.length) {
+    throw new RunError(
+      `Not installed in ComfyUI: ${missing.join(', ')}. ` +
+        'Never use a model of another family instead. If a param selects this file, ' +
+        'comfy_workflow_inputs with verbose lists the installed ones. ' +
+        'Otherwise tell the user what is missing, or use a workflow not marked [missing].',
+    );
+  }
+
+  for (const image of params.images) {
     const name = await client.uploadImage(
       Buffer.from(image.data, 'base64'),
-      `pi-${randomUUID().slice(0, 8)}-${n + 1}.${extOf(image.mimeType)}`,
+      // Named by content: uploading the same picture again adds no new file.
+      `pi-${createHash('sha256').update(image.data).digest('hex').slice(0, 16)}.${extOf(image.mimeType)}`,
       image.mimeType,
     );
     params.values.set(image.key, name);
@@ -146,8 +163,12 @@ export async function runWorkflow(
     const entryNow = await client.history(promptId);
     const failure = entryNow ? executionError(entryNow, apiPrompt) : undefined;
     if (failure) throw new RunError(failure);
-    if (entryNow?.status?.completed) done = entryNow;
-    else await sleep(opts.pollMs ?? 1000, opts.signal);
+    if (entryNow?.status?.completed) {
+      done = entryNow;
+    } else {
+      opts.onProgress?.(Math.round((Date.now() - started) / 1000));
+      await sleep(opts.pollMs ?? 1000, opts.signal);
+    }
   }
 
   const wanted = new Set(

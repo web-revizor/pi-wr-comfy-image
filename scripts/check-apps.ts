@@ -24,14 +24,8 @@ for (const e of entries) {
   const workflow = workflows.get(e.id);
   if (!workflow) continue;
   const found: string[] = [];
-  const exposed = workflow.extra?.linearData?.inputs ?? [];
-  if (exposed.length !== e.inputs.length) {
-    const keys = new Set(e.inputs.map((i) => i.key));
-    for (const [id, widget] of exposed) {
-      if (!keys.has(`${id}.${widget}`))
-        found.push(`App Mode input ${id}.${widget} does not resolve`);
-    }
-  }
+  for (const input of e.unresolved ?? [])
+    found.push(`App Mode input ${input} does not resolve`);
   for (const i of e.inputs) {
     if (NON_ASCII.test(i.name)) found.push(`param name "${i.name}" (${i.key})`);
     for (const c of i.choices ?? []) {

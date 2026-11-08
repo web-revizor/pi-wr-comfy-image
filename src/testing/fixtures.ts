@@ -92,6 +92,69 @@ export const info: ObjectInfo = {
   },
 };
 
+/** `info` plus a node with a dynamic combo: each option brings its own widgets. */
+export const panelInfo: ObjectInfo = {
+  ...info,
+  Panel: {
+    input: {
+      required: {
+        switch: [
+          'COMFY_DYNAMICCOMBO_V3',
+          {
+            options: [
+              {
+                key: 'edit',
+                inputs: {
+                  required: {
+                    photo: [['in.png'], { image_upload: true }],
+                    prompt: ['STRING', { multiline: true }],
+                  },
+                },
+              },
+              {
+                key: 't2i',
+                inputs: {
+                  required: {
+                    prompt: ['STRING', { multiline: true }],
+                    steps: ['INT', { default: 8, min: 1, max: 40 }],
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
+    output: ['STRING'],
+    output_node: false,
+  },
+};
+
+/** `txt2img` driven by a panel; App Mode stores its child widgets by locator. */
+export function panelApp(): UiWorkflow {
+  const wf = txt2img();
+  wf.id = 'wf-1';
+  wf.nodes.push({
+    id: 10,
+    type: 'Panel',
+    title: 'Mode: pick one',
+    widgets_values: ['edit', 'in.png', 'hello'],
+  });
+  wf.extra = {
+    linearMode: true,
+    linearData: {
+      inputs: [
+        ['10', 'switch'],
+        ['wf-1:10:switch.photo', 'switch.photo'],
+        ['wf-1:10:switch.prompt', 'switch.prompt'],
+        ['wf-1:10:switch.steps', 'switch.steps'],
+      ],
+      outputs: ['5'],
+    },
+  };
+  return wf;
+}
+
 /** Checkpoint -> prompt -> KSampler -> SaveImage, App Mode exposing prompt, seed, cfg. */
 export function txt2img(): UiWorkflow {
   return {

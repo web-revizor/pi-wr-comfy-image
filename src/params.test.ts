@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
+  type AppInput,
   appInputs,
   describeInputs,
   promptInput,
@@ -39,6 +40,27 @@ test('App Mode inputs carry key, short name, label, type and choices', () => {
   assert.equal(prompt?.key, '2.text');
 });
 
+test('model file params are left out of the short listing and accepted anyway', () => {
+  const file: AppInput = {
+    key: '1.unet_name',
+    name: 'unet_name',
+    label: 'Model',
+    kind: 'combo',
+    default: 'a.safetensors',
+    choices: ['a.safetensors', 'b.safetensors'],
+  };
+  assert.equal(summaryLine('x', [file], undefined), 'x: no inputs');
+  assert.doesNotMatch(describeInputs('x', [file], undefined), /unet_name/);
+  assert.match(describeInputs('x', [file], undefined), /1 model file param/);
+  assert.match(describeInputs('x', [file], undefined, true), /unet_name/);
+  const r = resolveParams(
+    [{ type: 'text', text: '{"unet_name": "b.safetensors"}' }],
+    [file],
+    undefined,
+  );
+  assert.equal(r.values.get('1.unet_name'), 'b.safetensors');
+});
+
 test('the listing is one short line per param', () => {
   const text = describeInputs('t2i', inputs, prompt);
   assert.match(text, /^ {2}prompt: text$/m);
@@ -49,6 +71,29 @@ test('the listing is one short line per param', () => {
     /^ {2}sampler_name: "euler" \| "dpmpp_2m" \(= "euler"\)$/m,
   );
   assert.doesNotMatch(text, /2\.text/);
+});
+
+const intInput = (max: number): AppInput => ({
+  key: '1.n',
+  name: 'n',
+  label: 'N',
+  kind: 'int',
+  default: 1,
+  max,
+});
+const setN = (n: number, max = 100): unknown =>
+  resolveParams(
+    [{ type: 'text', text: JSON.stringify({ n }) }],
+    [intInput(max)],
+    undefined,
+  ).values.get('1.n');
+
+test('a fractional value for an integer input is rounded', () => {
+  assert.equal(setN(7.6), 8);
+});
+
+test('a fraction on a 0..100 input is refused with the likely value', () => {
+  assert.throws(() => setN(0.6), /e\.g\. 60 instead of 0\.6/);
 });
 
 test('choices match by full value, short form or unique prefix, numbers may be quoted', () => {

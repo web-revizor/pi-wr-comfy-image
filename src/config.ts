@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { z } from 'zod';
@@ -26,9 +26,31 @@ const ConfigSchema = z.object({
   timeoutMs: z.number().int().positive().default(600_000),
   /** Per workflow: which input the prompt text goes to (`<nodeId>.<widget>`). */
   promptInput: z.record(z.string(), z.string()).default({}),
+  /** When set, the agent gets only `generate_image`, running these workflows. */
+  simple: z
+    .object({ text: z.string().optional(), edit: z.string().optional() })
+    .optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
+export type SimpleMode = NonNullable<Config['simple']>;
+
+/** Sets or removes the `simple` block; every other setting stays as it is. */
+export function saveSimple(
+  simple: SimpleMode | undefined,
+  file = CONFIG_FILE,
+): void {
+  let raw: Record<string, unknown> = {};
+  try {
+    raw = JSON.parse(readFileSync(file, 'utf8')) as Record<string, unknown>;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
+  }
+  if (simple) raw.simple = simple;
+  else delete raw.simple;
+  mkdirSync(path.dirname(file), { recursive: true });
+  writeFileSync(file, `${JSON.stringify(raw, null, 2)}\n`);
+}
 
 /** Reads the config; a missing file means defaults, a broken one is an error. */
 export function loadConfig(file = CONFIG_FILE): Config {

@@ -1,0 +1,64 @@
+{
+  "1": {
+    "inputs": {
+      "image": "example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Фото",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "2": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "width": 200,
+      "height": 512,
+      "crop": "disabled",
+      "image": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Розмір",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "3": {
+    "inputs": {
+      "upscale_method": "nearest-exact",
+      "width": 100,
+      "height": 512,
+      "crop": "disabled",
+      "image": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "ImageScale",
+    "_meta": {
+      "title": "Розмір",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  },
+  "4": {
+    "inputs": {
+      "filename_prefix": "pi-custom-test/same_titles",
+      "images": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image",
+      "cnr_id": "comfy-core",
+      "ver": "0.44.2"
+    }
+  }
+}

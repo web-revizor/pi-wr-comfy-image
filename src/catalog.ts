@@ -1,14 +1,21 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { type AppInput, appInputs, promptInput } from './appInputs.js';
+import {
+  type AppInput,
+  appInputs,
+  MODEL_FILE,
+  promptInput,
+  unresolvedInputs,
+} from './appInputs.js';
 import { type ComfyClient } from './comfy/client.js';
-import { isImageOutput } from './comfy/objectInfo.js';
+import { inputSpec, isImageOutput } from './comfy/objectInfo.js';
 import {
   type ObjectInfo,
   type UiNode,
   type UiWorkflow,
 } from './comfy/types.js';
 import { type Config, globMatch } from './config.js';
+import { ConvertError, toApiPrompt } from './convert/toApiPrompt.js';
 
 /** One App Mode image workflow offered by the tools. */
 export interface CatalogEntry {
@@ -19,6 +26,10 @@ export interface CatalogEntry {
   inputs: AppInput[];
   /** Key of the input the prompt text goes to. */
   prompt?: string;
+  /** Model files or node types the workflow needs and the server lacks. */
+  missing?: string[];
+  /** App Mode inputs that could not be matched to a widget. */
+  unresolved?: string[];
 }
 
 export const APP_SUFFIX = '.app.json';
@@ -54,6 +65,31 @@ export function selectFiles(
   );
 }
 
+/** What the workflow loads by default that this ComfyUI cannot provide. */
+export function missingFiles(
+  workflow: UiWorkflow,
+  info: ObjectInfo,
+  overrides?: Map<string, unknown>,
+): string[] {
+  let prompt;
+  try {
+    prompt = toApiPrompt(workflow, info, overrides);
+  } catch (err) {
+    if (err instanceof ConvertError) return [err.message];
+    throw err;
+  }
+  const missing = new Set<string>();
+  for (const node of Object.values(prompt)) {
+    for (const [name, value] of Object.entries(node.inputs)) {
+      if (typeof value !== 'string' || !MODEL_FILE.test(value)) continue;
+      const [type, opts = {}] = inputSpec(info, node.class_type, name) ?? [];
+      const list = Array.isArray(type) ? type : opts.options;
+      if (Array.isArray(list) && !list.includes(value)) missing.add(value);
+    }
+  }
+  return [...missing];
+}
+
 export function catalogEntry(
   file: string,
   modified: number,
@@ -67,7 +103,17 @@ export function catalogEntry(
   const prompt = configured
     ? inputs.find((i) => i.key === configured)
     : promptInput(inputs, workflow, info);
-  return { id, file, modified, inputs, prompt: prompt?.key };
+  const missing = missingFiles(workflow, info);
+  const unresolved = unresolvedInputs(workflow, inputs);
+  return {
+    id,
+    file,
+    modified,
+    inputs,
+    prompt: prompt?.key,
+    ...(missing.length ? { missing } : {}),
+    ...(unresolved.length ? { unresolved } : {}),
+  };
 }
 
 export interface Catalog {

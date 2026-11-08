@@ -68,7 +68,7 @@ function checkValue(input: AppInput, value: unknown): unknown {
       fail(
         `must be one of ${displayChoices(input.choices)
           .map((c) => JSON.stringify(c))
-          .join(', ')}`,
+          .join(', ')}. Pick one of these and call again.`,
       );
     }
     return choice;
@@ -77,13 +77,26 @@ function checkValue(input: AppInput, value: unknown): unknown {
     case 'int':
     case 'float': {
       // Smaller models often quote numbers: "1024" is meant as 1024.
-      const n =
+      const raw =
         typeof value === 'string' && value.trim() !== ''
           ? Number(value)
           : value;
-      if (typeof n !== 'number' || Number.isNaN(n)) fail('must be a number');
-      if (input.kind === 'int' && !Number.isInteger(n))
-        fail('must be an integer');
+      if (typeof raw !== 'number' || Number.isNaN(raw))
+        fail('must be a number');
+      if (
+        input.kind === 'int' &&
+        !Number.isInteger(raw) &&
+        (Math.abs(raw) < 1 || input.control !== undefined)
+      ) {
+        // 0.6 on a 0..100 field is a percentage written as a fraction, and a seed
+        // is an exact value: ask, do not guess.
+        fail(
+          input.max === 100
+            ? `must be a whole number from 0 to 100, e.g. ${Math.round(raw * 100)} instead of ${raw}`
+            : 'must be a whole number',
+        );
+      }
+      const n = input.kind === 'int' ? Math.round(raw) : raw;
       if (input.min !== undefined && n < input.min)
         fail(`must be ≥ ${input.min}`);
       if (input.max !== undefined && n > input.max)
@@ -155,7 +168,7 @@ export function resolveParams(
       const target = byName.get(name);
       if (!target) {
         throw new ParamsError(
-          `unknown input "${name}"; allowed: ${allowedKeys(inputs)}`,
+          `unknown input "${name}"; allowed: ${allowedKeys(inputs)}. Use only these names and call again.`,
         );
       }
       values.set(target.key, checkValue(target, value));

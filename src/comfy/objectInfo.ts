@@ -129,6 +129,26 @@ export function widgetSpecs(info: ObjectInfo, classType: string): WidgetSpec[] {
     .filter((w): w is WidgetSpec => w !== undefined);
 }
 
+/** A widget by name; `<parent>.<child>` looks in the parent's dynamic options. */
+export function findWidget(
+  specs: WidgetSpec[],
+  name: string,
+  values: ReadonlyMap<string, unknown>,
+): WidgetSpec | undefined {
+  const direct = specs.find((w) => w.name === name);
+  if (direct) return direct;
+  for (const parent of specs) {
+    if (!parent.dynamic || !name.startsWith(`${parent.name}.`)) continue;
+    const selected = parent.dynamic[String(values.get(parent.name))] ?? [];
+    return findWidget(
+      [...selected, ...Object.values(parent.dynamic).flat()],
+      name.slice(parent.name.length + 1),
+      values,
+    );
+  }
+  return undefined;
+}
+
 export function inputSpec(
   info: ObjectInfo,
   classType: string,

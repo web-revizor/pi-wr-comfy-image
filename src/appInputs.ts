@@ -1,4 +1,8 @@
-import { widgetSpecs, type WidgetKind } from './comfy/objectInfo.js';
+import {
+  findWidget,
+  widgetSpecs,
+  type WidgetKind,
+} from './comfy/objectInfo.js';
 import { type ObjectInfo, type UiWorkflow } from './comfy/types.js';
 import { savedNode } from './convert/toApiPrompt.js';
 import { shortNames } from './names.js';
@@ -20,17 +24,47 @@ export interface AppInput {
   control?: string;
 }
 
+/** Model files, by extension. */
+export const MODEL_FILE = /\.(safetensors|ckpt|pt|pth|gguf|bin|onnx)$/i;
+
+/**
+ * The node path of an App Mode input. A dynamic combo's field is stored as
+ * `<workflowId>:<nodeId>:<widget>` instead of the plain node id.
+ */
+function nodePath(rawId: string, widget: string, workflowId?: string): string {
+  const prefix = `${workflowId}:`;
+  const suffix = `:${widget}`;
+  return workflowId && rawId.startsWith(prefix) && rawId.endsWith(suffix)
+    ? rawId.slice(prefix.length, -suffix.length)
+    : rawId;
+}
+
+/** App Mode inputs `appInputs` could not match, as `<id>.<widget>`. */
+export function unresolvedInputs(
+  workflow: UiWorkflow,
+  inputs: AppInput[],
+): string[] {
+  const keys = new Set(inputs.map((i) => i.key));
+  return (workflow.extra?.linearData?.inputs ?? [])
+    .filter(
+      ([id, widget]) =>
+        !keys.has(`${nodePath(String(id), widget, workflow.id)}.${widget}`),
+    )
+    .map(([id, widget]) => `${id}.${widget}`);
+}
+
 /** Inputs App Mode exposes, in its order. Inputs that no longer resolve are skipped. */
 export function appInputs(workflow: UiWorkflow, info: ObjectInfo): AppInput[] {
   const linear = workflow.extra?.linearData?.inputs ?? [];
   const inputs: AppInput[] = [];
   for (const [rawId, widget] of linear) {
-    const path = String(rawId);
+    const path = nodePath(String(rawId), widget, workflow.id);
     const saved = savedNode(workflow, info, path);
     if (!saved) continue;
     const { node, values, controls } = saved;
-    const spec = widgetSpecs(info, node.type).find((w) => w.name === widget);
-    const value = values.get(widget);
+    const spec = findWidget(widgetSpecs(info, node.type), widget, values);
+    const value = values.get(widget) ?? spec?.default;
+    if (!spec && value === undefined) continue;
     const input: AppInput = {
       key: `${path}.${widget}`,
       name: '',
@@ -91,8 +125,10 @@ export function promptInput(
     const [path = ''] = i.key.split('.');
     const saved = savedNode(workflow, info, path);
     const spec = saved
-      ? widgetSpecs(info, saved.node.type).find(
-          (w) => w.name === widgetOf(i.key),
+      ? findWidget(
+          widgetSpecs(info, saved.node.type),
+          widgetOf(i.key),
+          saved.values,
         )
       : undefined;
     return spec?.multiline ?? false;
@@ -104,17 +140,19 @@ export function summaryLine(
   id: string,
   inputs: AppInput[],
   prompt: AppInput | undefined,
+  missing: string[] = [],
 ): string {
   const parts: string[] = [];
   if (prompt) parts.push('prompt');
   const images = inputs.filter((i) => i.kind === 'image').length;
   if (images) parts.push(`${images} image${images > 1 ? 's' : ''}`);
   const params = inputs
-    .filter((i) => i !== prompt && i.kind !== 'image')
+    .filter((i) => i !== prompt && i.kind !== 'image' && !isFileInput(i))
     .map((i) => i.name);
   const head = parts.join(', ');
   const tail = params.length ? `params: ${params.join(', ')}` : '';
-  return `${id}: ${[head, tail].filter(Boolean).join('; ') || 'no inputs'}`;
+  const flag = missing.length ? ` [missing: ${missing.join(', ')}]` : '';
+  return `${id}${flag}: ${[head, tail].filter(Boolean).join('; ') || 'no inputs'}`;
 }
 
 /** A choice without its explanation: "t2i — from scratch" -> "t2i". */
@@ -131,10 +169,8 @@ export function displayChoices(choices: string[]): string[] {
 const MAX_LISTED_CHOICES = 12;
 
 /** A combo of model files: listing them only buries the useful inputs. */
-function isFileChoice(choices: string[]): boolean {
-  return choices.some((c) =>
-    /\.(safetensors|ckpt|pt|pth|gguf|bin|onnx)$/i.test(c),
-  );
+function isFileInput(input: AppInput): boolean {
+  return input.choices?.some((c) => MODEL_FILE.test(c)) ?? false;
 }
 
 /** Compact description of a workflow's inputs, for the `comfy_workflow_inputs` tool. */
@@ -143,8 +179,17 @@ export function describeInputs(
   inputs: AppInput[],
   prompt: AppInput | undefined,
   verbose = false,
+  notes: { missing?: string[]; unresolved?: string[] } = {},
 ): string {
   const lines = [id];
+  if (notes.missing?.length) {
+    lines.push(
+      `  missing: ${notes.missing.join(', ')} (install it, or pass another file if a param selects it)`,
+    );
+  }
+  if (notes.unresolved?.length) {
+    lines.push(`  not usable from pi: ${notes.unresolved.join(', ')}`);
+  }
   if (prompt) lines.push('  prompt: text');
   const images = inputs.filter((i) => i.kind === 'image');
   if (images.length) {
@@ -152,12 +197,11 @@ export function describeInputs(
       `  images: ${images.length} (${images.map((i) => i.name).join(', ')})`,
     );
   }
+  const hidden = verbose ? [] : inputs.filter(isFileInput);
   for (const i of inputs) {
-    if (i === prompt || i.kind === 'image') continue;
+    if (i === prompt || i.kind === 'image' || hidden.includes(i)) continue;
     let type: string;
-    if (i.choices && isFileChoice(i.choices) && !verbose) {
-      type = `file, ${i.choices.length} available`;
-    } else if (i.choices) {
+    if (i.choices) {
       const shown = displayChoices(i.choices);
       type =
         shown.length > MAX_LISTED_CHOICES && !verbose
@@ -172,6 +216,11 @@ export function describeInputs(
         : `= ${JSON.stringify(i.choices ? shortChoice(String(i.default)) : i.default)}`;
     const label = verbose ? `  # ${i.label} [${i.key}]` : '';
     lines.push(`  ${i.name}: ${type} (${current})${label}`);
+  }
+  if (hidden.length) {
+    lines.push(
+      `  (${hidden.length} model file param${hidden.length > 1 ? 's' : ''} not shown: leave as saved, or call with verbose)`,
+    );
   }
   return lines.join('\n');
 }

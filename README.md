@@ -54,12 +54,12 @@ Param names come from your node titles — see [Parameters](docs/parameters.md).
 No App Mode workflows yet? Run `/comfy-install-workflows` in pi: it copies four minimal workflows (core nodes only)
 into ComfyUI's `workflows/pi-wr-comfy-image/` and never overwrites a file that is already there.
 
-| Workflow                             | What it does                   |
-| ------------------------------------ | ------------------------------ |
-| `pi-wr-comfy-image/flux2_klein_t2i`  | FLUX.2 klein 4B, text to image |
-| `pi-wr-comfy-image/flux2_klein_edit` | FLUX.2 klein 4B, edit an image |
-| `pi-wr-comfy-image/qwen21_t2i`       | Qwen-Image 2.1, text to image  |
-| `pi-wr-comfy-image/qwen21_edit`      | Qwen-Image 2.1, edit an image  |
+| Workflow                             | What it does                                |
+| ------------------------------------ | ------------------------------------------- |
+| `pi-wr-comfy-image/flux2_klein_t2i`  | FLUX.2 klein 4B, text to image (deprecated) |
+| `pi-wr-comfy-image/flux2_klein_edit` | FLUX.2 klein 4B, edit an image (deprecated) |
+| `pi-wr-comfy-image/qwen21_t2i`       | Qwen-Image 2.1, text to image               |
+| `pi-wr-comfy-image/qwen21_edit`      | Qwen-Image 2.1, edit an image               |
 
 The command lists the model files ComfyUI does not have yet, with download links — see [Workflows](docs/workflows.md).
 
@@ -73,6 +73,30 @@ The command lists the model files ComfyUI does not have yet, with download links
 
 RTX 3060 12 GB, 1024×1024, default steps (FLUX.2 klein 4, Qwen-Image 25), time of a run with the models already loaded,
 peak memory of the whole card. Qwen-Image ran with the `qwen3vl_8b_w4a8` text encoder.
+
+More from Qwen-Image 2.1, generated images on top, the same images edited below:
+
+![Qwen-Image 2.1, three images and an edit of each](https://raw.githubusercontent.com/web-revizor/pi-wr-comfy-image/main/docs/images/qwen.jpg)
+
+An edit can come back unchanged or oversharpened on some seeds. Run it again with another seed: the examples use seeds
+43 and 44.
+
+## Simple mode for small models
+
+Small models often get tool arguments wrong. `/comfy-simple` lets you pick one workflow for creating images and one for
+editing them; the agent then has a single tool, `generate_image(prompt, image?)`.
+
+![Requests to a small model in simple mode, and the images it made](https://raw.githubusercontent.com/web-revizor/pi-wr-comfy-image/main/docs/images/simple-mode.jpg)
+
+The same small free model on the same requests, two runs each:
+
+| Request            | Tool calls, full tools | Failed calls, full tools | Tool calls, simple mode | Failed calls, simple mode |
+| ------------------ | ---------------------- | ------------------------ | ----------------------- | ------------------------- |
+| Watercolor picture | 4 and 3                | 0 and 0                  | 1 and 1                 | 0 and 0                   |
+| Edit a photo       | 6 and 3                | 1 and 0                  | 1 and 1                 | 0 and 0                   |
+
+In simple mode the agent cannot choose a workflow or change its params, so size and other settings stay as saved in the
+workflow. See [Configuration](docs/configuration.md#simple-mode).
 
 ## Documentation
 

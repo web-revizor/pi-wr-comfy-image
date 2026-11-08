@@ -19,6 +19,27 @@ then the tools and the `/comfy-install-workflows` command are not registered.
 | `timeoutMs`   | `600000`                | how long one generation may take; after that the plugin stops waiting                                                                                   |
 | `promptInput` | `{}`                    | workflow name → the `<nodeId>.<widget>` key of an exposed input the prompt goes to (keys: `comfy_workflow_inputs` with `verbose: true`)                 |
 
+## Simple mode
+
+For small models. The agent gets one tool, `generate_image(prompt, image?)`, instead of `comfy_workflow_inputs` and
+`comfy_generate`, so it has nothing to get wrong. Off by default. Turn it on with `/comfy-simple` in pi, which asks for
+the workflows and writes them to the config, or by hand:
+
+```json
+{
+  "simple": {
+    "text": "pi-wr-comfy-image/qwen21_t2i",
+    "edit": "pi-wr-comfy-image/qwen21_edit"
+  }
+}
+```
+
+`text` runs without an image, `edit` with one; either can be left out. Params stay as saved in the workflow and the seed
+is new on every run if the workflow randomizes it. `/comfy-simple off` brings the full tools back. Run `/reload` after
+either.
+
+## Prompt input
+
 `promptInput` is for a workflow whose first multi-line text input is not the prompt. The key must be one App Mode
 exposes; otherwise the workflow has no prompt input.
 

@@ -44,6 +44,7 @@ export interface UiSubgraph {
 export type LinearInput = [string | number, string, unknown?];
 
 export interface UiWorkflow {
+  id?: string;
   nodes: UiNode[];
   links: (UiLinkTuple | UiLink)[];
   definitions?: { subgraphs?: UiSubgraph[] };

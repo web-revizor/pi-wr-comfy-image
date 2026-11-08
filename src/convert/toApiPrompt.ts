@@ -150,7 +150,35 @@ class Converter {
         values.set(key.slice(at + 1), value);
       }
     }
+    this.syncDynamic(widgetSpecs(this.info, node.type), values);
     return values;
+  }
+
+  /** A dynamic combo sends exactly the fields of its current option. */
+  private syncDynamic(
+    specs: WidgetSpec[],
+    values: Map<string, unknown>,
+    parent = '',
+  ): void {
+    for (const spec of specs) {
+      const name = `${parent}${spec.name}`;
+      const fields = spec.dynamic?.[String(values.get(name))];
+      if (!fields) continue;
+      const prefix = `${name}.`;
+      const current = new Set(fields.map((f) => f.name));
+      for (const key of [...values.keys()]) {
+        if (!key.startsWith(prefix)) continue;
+        const field = key.slice(prefix.length).split('.')[0] ?? '';
+        if (!current.has(field)) values.delete(key);
+      }
+      for (const field of fields) {
+        const key = `${prefix}${field.name}`;
+        if (!values.has(key) && field.default !== undefined) {
+          values.set(key, field.default);
+        }
+      }
+      this.syncDynamic(fields, values, prefix);
+    }
   }
 
   private resolveLink(level: Level, linkId: number | null | undefined): Source {

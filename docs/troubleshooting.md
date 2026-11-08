@@ -30,6 +30,12 @@ files of the bundled workflows with download links.
 **`"<node>": node type "X" is not installed in ComfyUI`** — the workflow uses a node this server does not have: a
 missing custom node, or a ComfyUI older than the workflow needs (the bundled ones need ≥ 0.38).
 
+**`Not installed in ComfyUI: <file>`** — the workflow needs a model file you do not have; nothing was queued. Install it,
+or pass another file of the same family if a param selects it (`comfy_workflow_inputs` with `verbose: true`).
+
+**`Stop. Tell the user: …`** — the workflow failed twice in a row, so calls to it are refused for 2 minutes. Fix the
+reason given and try again after that, or `/reload`.
+
 **`no result after 600 s - ComfyUI keeps prompt <id>`** — the job keeps running in ComfyUI; raise `timeoutMs` in the
 config.
 

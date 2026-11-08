@@ -6,6 +6,9 @@ the original back, delete or rename your copy and run the command again. The com
 
 All four use core ComfyUI nodes only (ComfyUI ≥ 0.38). Images are saved by ComfyUI under `output/pi/`.
 
+> **Deprecated:** `flux2_klein_t2i` and `flux2_klein_edit` still install and run, but they are no longer tested and may
+> be removed in a future release. Use the Qwen-Image workflows for new work.
+
 ## Params
 
 | Workflow           | Takes           | Params                                                                       |
